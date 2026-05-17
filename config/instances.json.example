@@ -1,14 +1,20 @@
 {
+  "self": {
+    "host":     "wishlist.kojikk.ru",
+    "upstream": "http://wishlist-orchestrator:3000"
+  },
+
   "instances": [
     {
-      "id":    "main",
+      "id":    "kojikk",
       "label": "Мой вишлист",
-      "url":   "http://localhost:3050"
+      "url":   "http://tg-wishlist:3000",
+      "host":  "kojikk.wishlist.kojikk.ru"
     },
     {
-      "id":    "family",
-      "label": "Семейный вишлист",
-      "url":   "https://family.example.com"
+      "id":    "external",
+      "label": "Внешний инстанс (не у нас на сервере)",
+      "url":   "https://wishes.example.com"
     }
   ]
 }

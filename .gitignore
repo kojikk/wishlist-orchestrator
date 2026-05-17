@@ -1,6 +1,10 @@
 node_modules/
 .env
 config/instances.json
-data/
+/data/
+proxy/data/*
+!proxy/data/.gitkeep
+proxy/config/*
+!proxy/config/.gitkeep
 *.log
 .DS_Store

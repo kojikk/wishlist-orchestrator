@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wishlist Orchestrator — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Onest:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/theme.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0 }
+body {
+  background: var(--bg); color: var(--tx);
+  font-family: 'Onest', sans-serif; font-size: 14px; line-height: 1.55;
+  min-height: 100vh; padding: 32px 24px;
+}
+.wrap { max-width: 880px; margin: 0 auto }
+h1 {
+  font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 700;
+  letter-spacing: -.5px; margin-bottom: 4px;
+}
+h1 em { color: var(--ac); font-style: normal }
+.sub { color: var(--tx2); margin-bottom: 28px; font-size: 13px }
+h2 { font-family: 'Unbounded', sans-serif; font-size: 15px; font-weight: 600; margin: 24px 0 10px }
+.muted { color: var(--tx3); font-size: 12px }
+
+.card {
+  background: var(--sf); border: 1px solid var(--br);
+  border-radius: 12px; padding: 16px 18px; margin-bottom: 10px;
+}
+.row { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: center; margin-bottom: 8px }
+.row label { color: var(--tx2); font-size: 12px }
+input[type=text], input[type=password], input[type=url] {
+  width: 100%; background: var(--sf2); border: 1px solid var(--br);
+  border-radius: 8px; padding: 8px 10px; color: var(--tx);
+  font-family: inherit; font-size: 13px;
+}
+input:focus { outline: none; border-color: var(--ac) }
+input[readonly] { color: var(--tx3) }
+
+button {
+  background: var(--ac); color: var(--bg); border: none;
+  border-radius: 8px; padding: 8px 14px; font-family: 'Onest', sans-serif;
+  font-weight: 500; font-size: 13px; cursor: pointer;
+}
+button:hover { filter: brightness(1.08) }
+button.ghost {
+  background: var(--sf2); color: var(--tx2); border: 1px solid var(--br);
+}
+button.ghost:hover { color: var(--tx); border-color: var(--tx3) }
+button.danger {
+  background: rgba(248,113,113,.1); color: var(--red);
+  border: 1px solid rgba(248,113,113,.25);
+}
+button.danger:hover { background: rgba(248,113,113,.2) }
+
+.inst-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 12px }
+.inst-hdr .badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 99px;
+  background: var(--sf2); color: var(--tx2); border: 1px solid var(--br);
+}
+.actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end }
+
+.toast {
+  position: fixed; right: 16px; bottom: 16px;
+  background: var(--sf); border: 1px solid var(--br); color: var(--tx);
+  padding: 10px 14px; border-radius: 8px; font-size: 12px;
+  opacity: 0; transform: translateY(10px); transition: .2s;
+  pointer-events: none; z-index: 99;
+}
+.toast.on { opacity: 1; transform: translateY(0) }
+.toast.err { border-color: rgba(248,113,113,.4); color: var(--red) }
+.toast.ok  { border-color: rgba(74,222,128,.4);  color: var(--gn)  }
+
+.empty { color: var(--tx3); font-size: 13px; padding: 24px 0; text-align: center }
+.nav { display: flex; gap: 12px; margin-bottom: 20px }
+.nav a { color: var(--tx2); font-size: 12px; text-decoration: none; padding: 4px 8px; border-radius: 6px }
+.nav a:hover { color: var(--ac); background: var(--sf) }
+
+.login-card { max-width: 380px; margin: 60px auto }
+.login-card input { margin-bottom: 12px }
+.disabled-card { max-width: 520px; margin: 60px auto; text-align: center }
+.disabled-card code { background: var(--sf2); padding: 2px 6px; border-radius: 4px; font-size: 12px }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Wishlist <em>Orchestrator</em> · Admin</h1>
+  <div class="sub">Управление <code>config/instances.json</code></div>
+  <div class="nav">
+    <a href="/">← Назад к статусу</a>
+    <a href="javascript:logout()" id="logout-link" style="display:none">Выйти</a>
+  </div>
+
+  <div id="content"></div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const TOKEN_KEY = 'orch_admin_token';
+let CONFIG = null; // текущая полная конфигурация (instances.json)
+
+function token() { return localStorage.getItem(TOKEN_KEY) || ''; }
+function logout() { localStorage.removeItem(TOKEN_KEY); location.reload(); }
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function toast(msg, kind) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast on ' + (kind || '');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, {
+    ...opts,
+    headers: {
+      ...(opts.headers || {}),
+      'Authorization': 'Bearer ' + token(),
+      ...(opts.body ? { 'Content-Type': 'application/json' } : {}),
+    },
+  });
+  let body = null;
+  try { body = await r.json(); } catch {}
+  return { ok: r.ok, status: r.status, body };
+}
+
+async function init() {
+  // Сначала проверяем, включена ли админка вообще
+  const ping = await fetch('/api/admin/ping', {
+    headers: { 'Authorization': 'Bearer ' + token() },
+  });
+  if (ping.status === 503) {
+    renderDisabled();
+    return;
+  }
+  if (ping.status === 401 || !token()) {
+    renderLogin();
+    return;
+  }
+  await loadConfig();
+}
+
+function renderDisabled() {
+  document.getElementById('content').innerHTML = `
+    <div class="card disabled-card">
+      <h2 style="margin-top:0">Админка выключена</h2>
+      <p class="muted" style="margin-top:8px">
+        В <code>.env</code> оркестратора не задан <code>ADMIN_TOKEN</code>.<br>
+        Добавьте строку:
+      </p>
+      <pre style="background:var(--sf2);border:1px solid var(--br);border-radius:8px;padding:12px;margin:12px 0;font-size:12px;text-align:left">ADMIN_TOKEN=&lt;любая длинная случайная строка&gt;</pre>
+      <p class="muted">И пересоздайте контейнер: <code>docker compose up -d</code></p>
+    </div>`;
+}
+
+function renderLogin() {
+  document.getElementById('content').innerHTML = `
+    <div class="card login-card">
+      <h2 style="margin-top:0">Вход</h2>
+      <p class="muted" style="margin-bottom:14px">Введите <code>ADMIN_TOKEN</code> из <code>.env</code>:</p>
+      <input type="password" id="tk" placeholder="ADMIN_TOKEN" autofocus>
+      <button onclick="doLogin()" style="width:100%">Войти</button>
+    </div>`;
+  document.getElementById('tk').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+}
+
+async function doLogin() {
+  const tk = document.getElementById('tk').value.trim();
+  if (!tk) return;
+  localStorage.setItem(TOKEN_KEY, tk);
+  const ping = await api('/api/admin/ping');
+  if (!ping.ok) {
+    localStorage.removeItem(TOKEN_KEY);
+    toast('Неверный токен', 'err');
+    return;
+  }
+  await loadConfig();
+}
+
+async function loadConfig() {
+  const r = await api('/api/admin/config');
+  if (!r.ok) {
+    toast(r.body?.error || 'Не удалось загрузить конфиг', 'err');
+    if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); renderLogin(); }
+    return;
+  }
+  CONFIG = r.body;
+  if (!CONFIG.instances) CONFIG.instances = [];
+  render();
+}
+
+function render() {
+  document.getElementById('logout-link').style.display = 'inline-block';
+
+  const self = CONFIG.self || { host: '', upstream: '' };
+  const instances = CONFIG.instances || [];
+
+  const html = `
+    <h2>Оркестратор (self)</h2>
+    <div class="card">
+      <p class="muted" style="margin-bottom:12px">
+        Публичный hostname и внутренний адрес самого оркестратора. Если задать
+        <code>host</code>, Caddy будет проксировать его на UI оркестратора.
+      </p>
+      <div class="row">
+        <label>host</label>
+        <input type="text" id="self-host" value="${esc(self.host || '')}" placeholder="wishlist.example.com">
+      </div>
+      <div class="row">
+        <label>upstream</label>
+        <input type="url" id="self-upstream" value="${esc(self.upstream || '')}" placeholder="http://wishlist-orchestrator:3000">
+      </div>
+    </div>
+
+    <h2>Инстансы (${instances.length})</h2>
+    <div id="instances">
+      ${instances.length ? instances.map(renderInstance).join('') : '<div class="empty">Нет инстансов. Добавьте первый.</div>'}
+    </div>
+    <div style="margin-top:10px">
+      <button class="ghost" onclick="addInstance()">+ Добавить инстанс</button>
+    </div>
+
+    <div class="actions" style="margin-top:24px">
+      <button class="ghost" onclick="loadConfig()">Отменить</button>
+      <button onclick="save()">Сохранить</button>
+    </div>
+  `;
+  document.getElementById('content').innerHTML = html;
+}
+
+function renderInstance(inst, idx) {
+  return `
+    <div class="card" data-idx="${idx}">
+      <div class="inst-hdr">
+        <strong>${esc(inst.label || inst.id || '—')}</strong>
+        ${inst.host ? `<span class="badge">${esc(inst.host)}</span>` : ''}
+        <button class="danger" style="margin-left:auto" onclick="removeInstance(${idx})">Удалить</button>
+      </div>
+      <div class="row">
+        <label>id</label>
+        <input type="text" data-field="id" value="${esc(inst.id || '')}" placeholder="kojikk">
+      </div>
+      <div class="row">
+        <label>label</label>
+        <input type="text" data-field="label" value="${esc(inst.label || '')}" placeholder="Мой вишлист">
+      </div>
+      <div class="row">
+        <label>url</label>
+        <input type="url" data-field="url" value="${esc(inst.url || '')}" placeholder="http://tg-wishlist:3000">
+      </div>
+      <div class="row">
+        <label>host</label>
+        <input type="text" data-field="host" value="${esc(inst.host || '')}" placeholder="kojikk.wishlist.example.com (опционально)">
+      </div>
+    </div>`;
+}
+
+function collect() {
+  const self = {
+    host:     document.getElementById('self-host').value.trim(),
+    upstream: document.getElementById('self-upstream').value.trim(),
+  };
+  const cards = document.querySelectorAll('#instances .card');
+  const instances = [...cards].map(card => {
+    const get = f => card.querySelector(`[data-field="${f}"]`).value.trim();
+    return {
+      id:    get('id'),
+      label: get('label'),
+      url:   get('url'),
+      host:  get('host'),
+    };
+  });
+  return {
+    self: (self.host || self.upstream) ? self : null,
+    instances,
+  };
+}
+
+function addInstance() {
+  // Сохраняем текущее состояние формы перед перерисовкой
+  CONFIG = collect();
+  CONFIG.instances.push({ id: '', label: '', url: '', host: '' });
+  render();
+  // Фокус на новый id
+  const cards = document.querySelectorAll('#instances .card');
+  const last = cards[cards.length - 1];
+  if (last) last.querySelector('[data-field="id"]').focus();
+}
+
+function removeInstance(idx) {
+  CONFIG = collect();
+  const inst = CONFIG.instances[idx];
+  if (inst.id && !confirm(`Удалить инстанс "${inst.label || inst.id}"?`)) return;
+  CONFIG.instances.splice(idx, 1);
+  render();
+}
+
+async function save() {
+  const payload = collect();
+  // Очистка пустых host у инстансов, чтобы не писать в JSON пустые строки
+  payload.instances = payload.instances.map(i => {
+    const o = { id: i.id, label: i.label, url: i.url };
+    if (i.host) o.host = i.host;
+    return o;
+  });
+  const r = await api('/api/admin/config', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+  if (!r.ok) {
+    toast(r.body?.error || 'Ошибка сохранения', 'err');
+    return;
+  }
+  CONFIG = r.body;
+  toast('Сохранено. Caddy и инстансы перезагружены.', 'ok');
+  render();
+}
+
+init();
+</script>
+</body>
+</html>

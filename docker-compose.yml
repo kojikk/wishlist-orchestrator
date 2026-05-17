@@ -4,9 +4,35 @@ services:
     container_name: wishlist-orchestrator
     restart: unless-stopped
     ports:
-      - "3060:3000"
+      - "3060:3000"     # прямой доступ во время разработки; продакшен ходит через caddy
     volumes:
       - ./config:/app/config
       - ./data:/app/data
     env_file:
       - .env
+    networks:
+      - wishnet
+    depends_on:
+      - caddy
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3
+    volumes:
+      - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./proxy/data:/data        # сертификаты Let's Encrypt — БЭКАПИТЬ!
+      - ./proxy/config:/config
+    networks:
+      - wishnet
+
+networks:
+  # name: wishnet — фиксированное имя без префикса compose-проекта.
+  # Эта сеть создаётся при первом `docker compose up` оркестратора, остальные
+  # стеки (wishlist-app) присоединяются к ней как external.
+  wishnet:
+    name: wishnet

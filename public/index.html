@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wishlist Orchestrator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Onest:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/theme.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0 }
+body {
+  background: var(--bg); color: var(--tx);
+  font-family: 'Onest', sans-serif; font-size: 14px; line-height: 1.55;
+  min-height: 100vh; padding: 32px 24px;
+}
+.wrap { max-width: 960px; margin: 0 auto }
+h1 {
+  font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 700;
+  letter-spacing: -.5px; margin-bottom: 4px;
+}
+h1 em { color: var(--ac); font-style: normal }
+.sub { color: var(--tx2); margin-bottom: 28px; font-size: 13px }
+h2 { font-family: 'Unbounded', sans-serif; font-size: 15px; font-weight: 600; margin: 24px 0 10px }
+
+.card {
+  background: var(--sf); border: 1px solid var(--br);
+  border-radius: 12px; padding: 16px 18px; margin-bottom: 10px;
+}
+.inst-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px }
+.inst-name { font-weight: 600 }
+.badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 99px;
+  background: var(--sf2); color: var(--tx2); border: 1px solid var(--br);
+}
+.badge.ok    { background: rgba(74,222,128,.1); color: var(--gn); border-color: rgba(74,222,128,.2) }
+.badge.err   { background: rgba(248,113,113,.1); color: var(--red); border-color: rgba(248,113,113,.2) }
+.badge.warn  { background: rgba(232,200,74,.1); color: var(--ac); border-color: rgba(232,200,74,.28) }
+.inst-meta { color: var(--tx3); font-size: 11px }
+.inst-url  { color: var(--tx2); font-size: 12px; word-break: break-all; margin-top: 4px }
+.inst-err  { color: var(--red); font-size: 12px; margin-top: 6px; font-family: monospace }
+.empty { color: var(--tx3); font-size: 13px; padding: 24px 0; text-align: center }
+
+pre {
+  background: var(--sf2); border: 1px solid var(--br);
+  border-radius: 8px; padding: 12px; font-size: 12px;
+  color: var(--tx2); overflow-x: auto; max-height: 320px;
+}
+a { color: var(--bl); text-decoration: none }
+a:hover { text-decoration: underline }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Wishlist <em>Orchestrator</em></h1>
+  <div class="sub">Агрегатор нескольких вишлист-инстансов</div>
+
+  <h2>Инстансы</h2>
+  <div id="instances"><div class="empty">Загрузка…</div></div>
+
+  <h2>Агрегированные данные</h2>
+  <div class="card">
+    <div class="inst-meta" style="margin-bottom:8px">
+      <code>GET /api/aggregate</code> — объединённые категории всех инстансов
+    </div>
+    <pre id="aggregate">Загрузка…</pre>
+  </div>
+</div>
+
+<script>
+const STATUS_LABELS = {
+  ok:           ['ok',         'ok'],
+  error:        ['error',      'err'],
+  incompatible: ['unsupported','err'],
+  idle:         ['idle',       'warn'],
+};
+
+async function load() {
+  try {
+    const [insts, agg] = await Promise.all([
+      fetch('/api/instances').then(r => r.json()),
+      fetch('/api/aggregate').then(r => r.json()),
+    ]);
+    renderInstances(insts.instances || []);
+    document.getElementById('aggregate').textContent =
+      `${agg.categories.length} categor(y/ies), ${Object.keys(agg.bookings).length} booking(s)\n\n` +
+      JSON.stringify(agg, null, 2);
+  } catch (e) {
+    document.getElementById('instances').innerHTML =
+      '<div class="empty">Не удалось загрузить: ' + e.message + '</div>';
+  }
+}
+
+function renderInstances(list) {
+  const el = document.getElementById('instances');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty">Инстансы не сконфигурированы. ' +
+      'Добавьте их в <code>config/instances.json</code> (см. <code>instances.json.example</code>).</div>';
+    return;
+  }
+  el.innerHTML = list.map(i => {
+    const [label, cls] = STATUS_LABELS[i.status] || ['?', 'warn'];
+    const fetched = i.lastFetchedAt
+      ? new Date(i.lastFetchedAt).toLocaleString('ru')
+      : '—';
+    const srcs = (i.sources || []).map(s => `${s.emoji || ''}${s.title}`).join(', ') || '(нет)';
+    return `
+      <div class="card">
+        <div class="inst-head">
+          <span class="inst-name">${esc(i.label || i.id)}</span>
+          <span class="badge ${cls}">${label}</span>
+          ${i.protocolVersion ? `<span class="badge">proto ${esc(i.protocolVersion)}</span>` : ''}
+        </div>
+        <div class="inst-url"><a href="${esc(i.url)}" target="_blank">${esc(i.url)}</a></div>
+        <div class="inst-meta" style="margin-top:6px">
+          ${i.itemCount} items · парсеры: ${esc(srcs)} · последний рефреш: ${esc(fetched)}
+        </div>
+        ${i.lastError ? `<div class="inst-err">${esc(i.lastError)}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+load();
+setInterval(load, 15000);
+</script>
+</body>
+</html>

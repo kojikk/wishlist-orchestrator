@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    container_name: wishlist-orchestrator
+    restart: unless-stopped
+    ports:
+      - "3060:3000"
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+    env_file:
+      - .env

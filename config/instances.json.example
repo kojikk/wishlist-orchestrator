@@ -1,0 +1,14 @@
+{
+  "instances": [
+    {
+      "id":    "main",
+      "label": "Мой вишлист",
+      "url":   "http://localhost:3050"
+    },
+    {
+      "id":    "family",
+      "label": "Семейный вишлист",
+      "url":   "https://family.example.com"
+    }
+  ]
+}

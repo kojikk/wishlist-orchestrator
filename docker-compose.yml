@@ -21,11 +21,13 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
-      - "443:443/udp"   # HTTP/3
+      # 443 не нужен — SSL терминирует Cloudflare (orange cloud).
+      # Если хочешь прямой TLS без Cloudflare: раскомментируй и задай CADDY_ACME_EMAIL в .env
+      # - "443:443"
+      # - "443:443/udp"
     volumes:
       - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./proxy/data:/data        # сертификаты Let's Encrypt — БЭКАПИТЬ!
+      - ./proxy/data:/data
       - ./proxy/config:/config
     networks:
       - wishnet

@@ -9,7 +9,7 @@
       "id":    "kojikk",
       "label": "Мой вишлист",
       "url":   "http://tg-wishlist:3000",
-      "host":  "kojikk.wishlist.kojikk.ru"
+      "host":  "kojikk-wishlist.kojikk.ru"
     },
     {
       "id":    "external",

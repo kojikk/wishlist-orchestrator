@@ -164,14 +164,15 @@ Caddy запускается как сервис внутри docker-compose.yml
 
 **Что нужно один раз настроить:**
 
-1. Wildcard A-запись в Cloudflare:
+1. Wildcard A-запись в Cloudflare (зона `kojikk.ru` → DNS):
    ```
-   Type: A   Name: *.wishlist   Content: <server-IP>   Proxy: DNS only (gray)
+   Type: A   Name: *   Content: <server-IP>   Proxy: Proxied (orange)
    ```
-   Gray cloud — обязательно, потому что бесплатный Universal SSL Cloudflare не
-   покрывает двухуровневые wildcard (`*.wishlist.kojikk.ru`).
+   Или отдельные записи для каждого домена. **Orange cloud** — Cloudflare
+   терминирует TLS своим сертификатом (Universal SSL покрывает `*.kojikk.ru`),
+   Caddy получает чистый HTTP и не занимается сертификатами.
 
-2. Открыть порты 80 и 443 на сервере.
+2. Открыть порт **80** на сервере (443 Caddy не нужен).
 
 После старта оркестратор увидит Caddy по адресу `http://caddy:2019` (внутри
 wishnet) и запушит конфиг. Через ~5-10 секунд Caddy получит сертификаты от LE

@@ -4,7 +4,7 @@ services:
     container_name: wishlist-orchestrator
     restart: unless-stopped
     ports:
-      - "3060:3000"     # прямой доступ во время разработки; продакшен ходит через caddy
+      - "3060:3000"     # прямой доступ во время разработки; продакшен ходит через caddy в ~/ingress
     volumes:
       - ./config:/app/config
       - ./data:/app/data
@@ -12,29 +12,11 @@ services:
       - .env
     networks:
       - wishnet
-    depends_on:
-      - caddy
-
-  caddy:
-    image: caddy:2-alpine
-    container_name: caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      # 443 не нужен — SSL терминирует Cloudflare (orange cloud).
-      # Если хочешь прямой TLS без Cloudflare: раскомментируй и задай CADDY_ACME_EMAIL в .env
-      # - "443:443"
-      # - "443:443/udp"
-    volumes:
-      - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./proxy/data:/data
-      - ./proxy/config:/config
-    networks:
-      - wishnet
+      - ingress   # для пуша Caddyfile в caddy admin API (caddy:2019)
 
 networks:
-  # name: wishnet — фиксированное имя без префикса compose-проекта.
-  # Эта сеть создаётся при первом `docker compose up` оркестратора, остальные
-  # стеки (wishlist-app) присоединяются к ней как external.
   wishnet:
     name: wishnet
+  ingress:
+    name: ingress
+    external: true

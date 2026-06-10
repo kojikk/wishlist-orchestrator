@@ -25,6 +25,7 @@ registry.onConfigChange = (reg) => { syncCaddy(reg).catch(() => {}); };
 const app = express();
 app.use(express.json({ limit: '256kb' }));
 app.use(express.static(PUBLIC_DIR, {
+  extensions: ['html'],
   setHeaders(res, p) { if (p.endsWith('.html')) res.set('Cache-Control', 'no-store'); }
 }));
 

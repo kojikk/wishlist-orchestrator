@@ -1,328 +1,685 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Wishlist Orchestrator — Admin</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Onest:wght@300;400;500&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Оркестратор — админка</title>
 <link rel="stylesheet" href="/theme.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0 }
-body {
-  background: var(--bg); color: var(--tx);
-  font-family: 'Onest', sans-serif; font-size: 14px; line-height: 1.55;
-  min-height: 100vh; padding: 32px 24px;
-}
-.wrap { max-width: 880px; margin: 0 auto }
-h1 {
-  font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 700;
-  letter-spacing: -.5px; margin-bottom: 4px;
-}
-h1 em { color: var(--ac); font-style: normal }
-.sub { color: var(--tx2); margin-bottom: 28px; font-size: 13px }
-h2 { font-family: 'Unbounded', sans-serif; font-size: 15px; font-weight: 600; margin: 24px 0 10px }
-.muted { color: var(--tx3); font-size: 12px }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 20px 64px; }
 
-.card {
-  background: var(--sf); border: 1px solid var(--br);
-  border-radius: 12px; padding: 16px 18px; margin-bottom: 10px;
-}
-.row { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: center; margin-bottom: 8px }
-.row label { color: var(--tx2); font-size: 12px }
-input[type=text], input[type=password], input[type=url] {
-  width: 100%; background: var(--sf2); border: 1px solid var(--br);
-  border-radius: 8px; padding: 8px 10px; color: var(--tx);
-  font-family: inherit; font-size: 13px;
-}
-input:focus { outline: none; border-color: var(--ac) }
-input[readonly] { color: var(--tx3) }
+  /* ── Login ── */
+  #login {
+    position: fixed; inset: 0; z-index: 50;
+    display: grid; place-items: center;
+    background: rgba(7,7,15,.55);
+    backdrop-filter: blur(6px);
+  }
+  #login .panel { width: min(380px, calc(100vw - 40px)); padding: 34px 30px; }
+  #login h2 { font-size: 1.35rem; letter-spacing: -.02em; margin-bottom: 6px; }
+  #login p  { color: var(--muted); font-size: .85rem; margin-bottom: 22px; }
+  #login .err { color: var(--err); font-size: .8rem; margin-top: 12px; min-height: 1em; }
 
-button {
-  background: var(--ac); color: var(--bg); border: none;
-  border-radius: 8px; padding: 8px 14px; font-family: 'Onest', sans-serif;
-  font-weight: 500; font-size: 13px; cursor: pointer;
-}
-button:hover { filter: brightness(1.08) }
-button.ghost {
-  background: var(--sf2); color: var(--tx2); border: 1px solid var(--br);
-}
-button.ghost:hover { color: var(--tx); border-color: var(--tx3) }
-button.danger {
-  background: rgba(248,113,113,.1); color: var(--red);
-  border: 1px solid rgba(248,113,113,.25);
-}
-button.danger:hover { background: rgba(248,113,113,.2) }
+  /* ── Shell ── */
+  .topbar {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 26px;
+  }
+  .topbar h1 { font-size: 1.3rem; font-weight: 800; letter-spacing: -.02em; }
+  .topbar .spacer { flex: 1; }
 
-.inst-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 12px }
-.inst-hdr .badge {
-  font-size: 10px; padding: 2px 8px; border-radius: 99px;
-  background: var(--sf2); color: var(--tx2); border: 1px solid var(--br);
-}
-.actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end }
+  nav.tabs {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 26px;
+    padding: 6px;
+    border-radius: 16px;
+  }
+  nav.tabs button {
+    font: 600 .85rem/1 var(--font);
+    color: var(--muted);
+    background: none; border: none;
+    padding: .7em 1.15em;
+    border-radius: 11px;
+    cursor: pointer;
+    transition: color .15s, background .15s;
+  }
+  nav.tabs button:hover { color: var(--text); }
+  nav.tabs button.active { color: var(--text); background: rgba(255,255,255,.08); }
 
-.toast {
-  position: fixed; right: 16px; bottom: 16px;
-  background: var(--sf); border: 1px solid var(--br); color: var(--tx);
-  padding: 10px 14px; border-radius: 8px; font-size: 12px;
-  opacity: 0; transform: translateY(10px); transition: .2s;
-  pointer-events: none; z-index: 99;
-}
-.toast.on { opacity: 1; transform: translateY(0) }
-.toast.err { border-color: rgba(248,113,113,.4); color: var(--red) }
-.toast.ok  { border-color: rgba(74,222,128,.4);  color: var(--gn)  }
+  .view { display: none; }
+  .view.active { display: block; }
 
-.empty { color: var(--tx3); font-size: 13px; padding: 24px 0; text-align: center }
-.nav { display: flex; gap: 12px; margin-bottom: 20px }
-.nav a { color: var(--tx2); font-size: 12px; text-decoration: none; padding: 4px 8px; border-radius: 6px }
-.nav a:hover { color: var(--ac); background: var(--sf) }
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 
-.login-card { max-width: 380px; margin: 60px auto }
-.login-card input { margin-bottom: 12px }
-.disabled-card { max-width: 520px; margin: 60px auto; text-align: center }
-.disabled-card code { background: var(--sf2); padding: 2px 6px; border-radius: 4px; font-size: 12px }
+  .panel { padding: 22px; }
+  .panel h3 { font-size: 1rem; margin-bottom: 14px; display: flex; align-items: center; gap: .6em; }
+
+  .kv { display: flex; flex-direction: column; gap: 7px; font-size: .82rem; }
+  .kv div { display: flex; justify-content: space-between; gap: 12px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { text-align: right; word-break: break-all; }
+
+  .row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+
+  /* instances editor */
+  .inst-row { padding: 18px; margin-bottom: 12px; }
+  .inst-row .fields {
+    display: grid; gap: 10px;
+    grid-template-columns: minmax(90px,.6fr) minmax(120px,.8fr) minmax(180px,1.2fr) minmax(180px,1.2fr);
+  }
+  @media (max-width: 760px) { .inst-row .fields { grid-template-columns: 1fr 1fr; } }
+  .inst-row label { font-size: .68rem; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; display: block; margin-bottom: 5px; }
+  .checkline { font-size: .78rem; margin-top: 10px; min-height: 1.2em; }
+  .checkline.ok { color: var(--ok); }
+  .checkline.err { color: var(--err); }
+
+  pre.code {
+    font: .78rem/1.55 'SF Mono', Consolas, monospace;
+    background: rgba(0,0,0,.4);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 16px;
+    overflow: auto;
+    max-height: 480px;
+    white-space: pre;
+  }
+
+  table.ct { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  table.ct th { text-align: left; color: var(--muted); font-weight: 600; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; padding: 8px 10px; }
+  table.ct td { padding: 12px 10px; border-top: 1px solid var(--card-border); vertical-align: middle; }
+  table.ct .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* modal */
+  #modal {
+    position: fixed; inset: 0; z-index: 60;
+    display: none; place-items: center;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(4px);
+    padding: 20px;
+  }
+  #modal.open { display: grid; }
+  #modal .box { width: min(880px, 100%); max-height: 80vh; display: flex; flex-direction: column; padding: 20px; }
+  #modal .box pre { flex: 1; margin-top: 12px; max-height: none; }
+  #modal .head { display: flex; align-items: center; justify-content: space-between; }
+
+  /* toasts */
+  #toasts { position: fixed; top: 18px; right: 18px; z-index: 70; display: flex; flex-direction: column; gap: 10px; }
+  .toast {
+    padding: 13px 18px;
+    font-size: .85rem;
+    border-radius: 13px;
+    border: 1px solid var(--card-border);
+    background: rgba(20,20,36,.92);
+    backdrop-filter: blur(10px);
+    max-width: 360px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.45);
+  }
+  .toast.ok  { border-color: rgba(52,211,153,.4); }
+  .toast.err { border-color: rgba(248,113,113,.4); }
+
+  .hint { font-size: .78rem; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+  .formgrid { display: grid; gap: 14px; max-width: 560px; }
+  .copyable {
+    display: flex; align-items: center; gap: 8px;
+    font: .8rem/1.4 'SF Mono', Consolas, monospace;
+    background: rgba(0,0,0,.35);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    word-break: break-all;
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Wishlist <em>Orchestrator</em> · Admin</h1>
-  <div class="sub">Управление <code>config/instances.json</code></div>
-  <div class="nav">
-    <a href="/">← Назад к статусу</a>
-    <a href="javascript:logout()" id="logout-link" style="display:none">Выйти</a>
-  </div>
+<canvas id="bg"></canvas>
 
-  <div id="content"></div>
+<!-- ── Login gate ── -->
+<div id="login" style="display:none">
+  <div class="panel glass">
+    <h2>⚙️ Админка <span class="grad-text">оркестратора</span></h2>
+    <p>Вставь админ-токен из <code>.env</code> — он сохранится в этом браузере.</p>
+    <input class="input" id="tokenInput" type="password" placeholder="ADMIN_TOKEN" autocomplete="off">
+    <div class="err" id="loginErr"></div>
+    <button class="btn primary" id="loginBtn" style="width:100%;justify-content:center;margin-top:8px">Войти</button>
+  </div>
 </div>
 
-<div id="toast" class="toast"></div>
+<div class="wrap" id="app" style="visibility:hidden">
+  <div class="topbar">
+    <h1>⚙️ Оркестратор</h1>
+    <span class="badge" id="syncBadge"><i class="dot idle"></i>caddy</span>
+    <div class="spacer"></div>
+    <a class="btn sm" href="/">← к вишлистам</a>
+    <button class="btn sm" id="logoutBtn">Выйти</button>
+  </div>
 
+  <nav class="tabs glass" id="tabs">
+    <button data-view="overview" class="active">Обзор</button>
+    <button data-view="instances">Инстансы</button>
+    <button data-view="caddy">Caddy</button>
+    <button data-view="docker">Контейнеры</button>
+    <button data-view="provision">+ Новый вишлист</button>
+  </nav>
+
+  <!-- ── Обзор ── -->
+  <section class="view active" id="view-overview">
+    <div class="grid" id="ovGrid"></div>
+  </section>
+
+  <!-- ── Инстансы ── -->
+  <section class="view" id="view-instances">
+    <div class="panel glass" style="margin-bottom:12px">
+      <h3>🛰 Сам оркестратор (self)</h3>
+      <div class="inst-row-self" style="display:grid;gap:10px;grid-template-columns:1fr 1fr">
+        <div><label>host</label><input class="input" id="selfHost" placeholder="wishlist.example.ru"></div>
+        <div><label>upstream</label><input class="input" id="selfUpstream" placeholder="http://wishlist-orchestrator:3000"></div>
+      </div>
+    </div>
+    <div id="instList"></div>
+    <div class="row-actions">
+      <button class="btn" id="addInstBtn">+ Добавить инстанс</button>
+      <button class="btn primary" id="saveInstBtn">💾 Сохранить конфиг</button>
+    </div>
+    <p class="hint">Сохранение перезаписывает <code>config/instances.json</code> целиком: registry перечитает его и Caddy получит свежий конфиг автоматически. Кнопка «проверить» дергает manifest-handshake инстанса, «DNS» — сверяет A-запись хоста с IP сервера.</p>
+  </section>
+
+  <!-- ── Caddy ── -->
+  <section class="view" id="view-caddy">
+    <div class="panel glass">
+      <h3>🔀 Caddyfile <span class="spacer" style="flex:1"></span>
+        <button class="btn sm" id="caddyReloadBtn">⟳ обновить</button>
+        <button class="btn sm primary" id="caddySyncBtn">⤴ синкнуть в Caddy</button>
+      </h3>
+      <div class="kv" id="caddyMeta" style="margin-bottom:14px"></div>
+      <pre class="code" id="caddyfile">…</pre>
+    </div>
+  </section>
+
+  <!-- ── Контейнеры ── -->
+  <section class="view" id="view-docker">
+    <div class="panel glass">
+      <h3>🐳 Контейнеры сети вишлистов
+        <span style="flex:1"></span>
+        <button class="btn sm" id="dockerReloadBtn">⟳ обновить</button>
+      </h3>
+      <div style="overflow-x:auto">
+        <table class="ct" id="ctTable"></table>
+      </div>
+      <p class="hint">«Обновить образ» тянет свежий образ по тому же тегу и пересоздаёт контейнер с теми же настройками (env/volumes/сети). Для локально собранных образов сначала пересобери образ на хосте. Caddy и сам оркестратор защищены от управления отсюда.</p>
+    </div>
+  </section>
+
+  <!-- ── Провижининг ── -->
+  <section class="view" id="view-provision">
+    <div class="panel glass">
+      <h3>✨ Новый вишлист</h3>
+      <div class="formgrid">
+        <div><label style="font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px">id (a-z0-9_-)</label>
+          <input class="input" id="pvId" placeholder="vasya"></div>
+        <div><label style="font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px">Название (label)</label>
+          <input class="input" id="pvLabel" placeholder="Вишлист Васи"></div>
+        <div><label style="font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px">Публичный домен (host)</label>
+          <input class="input" id="pvHost" placeholder="vasya-wishlist.kojikk.ru">
+          <div class="checkline" id="pvDns"></div></div>
+        <div><label style="font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px">Образ</label>
+          <select class="input" id="pvImage"></select></div>
+        <div><label style="font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px">Доп. env (KEY=VALUE на строку, опционально)</label>
+          <textarea class="input" id="pvEnv" rows="3" placeholder="STEAM_API_KEY=..."></textarea></div>
+        <div class="row-actions">
+          <button class="btn sm" id="pvDnsBtn">🌐 проверить DNS</button>
+          <button class="btn primary" id="pvGoBtn">🚀 Создать</button>
+        </div>
+      </div>
+      <div id="pvResult" style="display:none;margin-top:22px">
+        <h3 style="color:var(--ok)">✓ Вишлист создан</h3>
+        <div class="kv" style="gap:12px">
+          <div><dt>Публичный URL</dt></div>
+          <div class="copyable"><span id="pvResUrl"></span><button class="btn sm" data-copy="pvResUrl">⧉</button></div>
+          <div><dt>Админ-токен владельца (показывается один раз — передай его)</dt></div>
+          <div class="copyable"><span id="pvResToken"></span><button class="btn sm" data-copy="pvResToken">⧉</button></div>
+        </div>
+        <p class="hint">Не забудь: 1) создать A-запись DNS на IP сервера (grey cloud!), 2) если это Telegram mini-app — прописать URL у BotFather.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- modal -->
+<div id="modal"><div class="box glass">
+  <div class="head"><h3 id="modalTitle"></h3><button class="btn sm" onclick="closeModal()">✕ закрыть</button></div>
+  <pre class="code" id="modalBody"></pre>
+</div></div>
+
+<div id="toasts"></div>
+
+<script src="/vendor/gsap.min.js"></script>
 <script>
-const TOKEN_KEY = 'orch_admin_token';
-let CONFIG = null; // текущая полная конфигурация (instances.json)
+'use strict';
 
-function token() { return localStorage.getItem(TOKEN_KEY) || ''; }
-function logout() { localStorage.removeItem(TOKEN_KEY); location.reload(); }
+// ── Aurora bg (приглушённый) ────────────────────────────────────────────────
+(() => {
+  const c = document.getElementById('bg'), x = c.getContext('2d');
+  let W, H;
+  const resize = () => { W = c.width = innerWidth; H = c.height = innerHeight; };
+  resize(); addEventListener('resize', resize);
+  const blobs = [
+    { col: '139,92,246', r: .48, s: .00007, p: 0 },
+    { col: '34,211,238', r: .36, s: .00005, p: 2.4 },
+    { col: '59,130,246', r: .40, s: .00006, p: 5.1 },
+  ];
+  const frame = (t) => {
+    x.clearRect(0, 0, W, H);
+    for (const b of blobs) {
+      const cx = W * (.5 + .46 * Math.sin(t * b.s + b.p));
+      const cy = H * (.5 + .46 * Math.cos(t * b.s * 1.27 + b.p * 1.6));
+      const g = x.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * b.r);
+      g.addColorStop(0, `rgba(${b.col},.09)`);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+    }
+  };
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) frame(9000);
+  else { const loop = (t) => { frame(t); requestAnimationFrame(loop); }; requestAnimationFrame(loop); }
+})();
 
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+// ── Хелперы ─────────────────────────────────────────────────────────────────
+const $ = (sel) => document.querySelector(sel);
+const TOKEN_KEY = 'orchAdminToken';
+let token = localStorage.getItem(TOKEN_KEY) || '';
 
-function toast(msg, kind) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast on ' + (kind || '');
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => { t.className = 'toast'; }, 3000);
-}
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, m =>
+  ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
 
-async function api(path, opts = {}) {
+async function api(path, { method = 'GET', body = null } = {}) {
   const r = await fetch(path, {
-    ...opts,
+    method,
     headers: {
-      ...(opts.headers || {}),
-      'Authorization': 'Bearer ' + token(),
-      ...(opts.body ? { 'Content-Type': 'application/json' } : {}),
+      'Authorization': 'Bearer ' + token,
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
     },
+    body: body ? JSON.stringify(body) : undefined,
   });
-  let body = null;
-  try { body = await r.json(); } catch {}
-  return { ok: r.ok, status: r.status, body };
+  if (r.status === 401) { logout(); throw new Error('Unauthorized'); }
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || `HTTP ${r.status}`);
+  return data;
 }
 
-async function init() {
-  // Сначала проверяем, включена ли админка вообще
-  const ping = await fetch('/api/admin/ping', {
-    headers: { 'Authorization': 'Bearer ' + token() },
-  });
-  if (ping.status === 503) {
-    renderDisabled();
-    return;
-  }
-  if (ping.status === 401 || !token()) {
-    renderLogin();
-    return;
-  }
-  await loadConfig();
+function toast(msg, kind = 'ok', ms = 4200) {
+  const el = document.createElement('div');
+  el.className = `toast ${kind}`;
+  el.textContent = msg;
+  $('#toasts').appendChild(el);
+  if (window.gsap) gsap.from(el, { x: 60, autoAlpha: 0, duration: .4, ease: 'power3.out' });
+  setTimeout(() => {
+    if (window.gsap) gsap.to(el, { x: 60, autoAlpha: 0, duration: .35, onComplete: () => el.remove() });
+    else el.remove();
+  }, ms);
 }
 
-function renderDisabled() {
-  document.getElementById('content').innerHTML = `
-    <div class="card disabled-card">
-      <h2 style="margin-top:0">Админка выключена</h2>
-      <p class="muted" style="margin-top:8px">
-        В <code>.env</code> оркестратора не задан <code>ADMIN_TOKEN</code>.<br>
-        Добавьте строку:
-      </p>
-      <pre style="background:var(--sf2);border:1px solid var(--br);border-radius:8px;padding:12px;margin:12px 0;font-size:12px;text-align:left">ADMIN_TOKEN=&lt;любая длинная случайная строка&gt;</pre>
-      <p class="muted">И пересоздайте контейнер: <code>docker compose up -d</code></p>
-    </div>`;
+const relTime = (ts) => {
+  if (!ts) return '—';
+  const d = Math.round((Date.now() - ts) / 1000);
+  if (d < 5) return 'только что';
+  if (d < 60) return `${d} с назад`;
+  if (d < 3600) return `${Math.floor(d / 60)} мин назад`;
+  return new Date(ts).toLocaleString('ru');
+};
+
+function openModal(title, text) {
+  $('#modalTitle').textContent = title;
+  $('#modalBody').textContent = text;
+  $('#modal').classList.add('open');
 }
+function closeModal() { $('#modal').classList.remove('open'); }
+$('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
 
-function renderLogin() {
-  document.getElementById('content').innerHTML = `
-    <div class="card login-card">
-      <h2 style="margin-top:0">Вход</h2>
-      <p class="muted" style="margin-bottom:14px">Введите <code>ADMIN_TOKEN</code> из <code>.env</code>:</p>
-      <input type="password" id="tk" placeholder="ADMIN_TOKEN" autofocus>
-      <button onclick="doLogin()" style="width:100%">Войти</button>
-    </div>`;
-  document.getElementById('tk').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+// ── Auth ────────────────────────────────────────────────────────────────────
+function logout() {
+  localStorage.removeItem(TOKEN_KEY);
+  token = '';
+  $('#app').style.visibility = 'hidden';
+  $('#login').style.display = 'grid';
 }
+$('#logoutBtn').onclick = logout;
 
-async function doLogin() {
-  const tk = document.getElementById('tk').value.trim();
-  if (!tk) return;
-  localStorage.setItem(TOKEN_KEY, tk);
-  const ping = await api('/api/admin/ping');
-  if (!ping.ok) {
-    localStorage.removeItem(TOKEN_KEY);
-    toast('Неверный токен', 'err');
-    return;
-  }
-  await loadConfig();
+async function tryLogin(t) {
+  const r = await fetch('/api/admin/ping', { headers: { 'Authorization': 'Bearer ' + t } });
+  if (r.status === 503) { $('#loginErr').textContent = 'Админка выключена: задай ADMIN_TOKEN в .env оркестратора.'; return false; }
+  if (!r.ok) { $('#loginErr').textContent = 'Неверный токен.'; return false; }
+  token = t;
+  localStorage.setItem(TOKEN_KEY, t);
+  $('#login').style.display = 'none';
+  $('#app').style.visibility = 'visible';
+  if (window.gsap) gsap.from('#app > *', { y: 18, autoAlpha: 0, duration: .55, stagger: .07, ease: 'power3.out', clearProps: 'all' });
+  loadOverview();
+  return true;
 }
+$('#loginBtn').onclick = () => tryLogin($('#tokenInput').value.trim());
+$('#tokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('#loginBtn').click(); });
 
-async function loadConfig() {
-  const r = await api('/api/admin/config');
-  if (!r.ok) {
-    toast(r.body?.error || 'Не удалось загрузить конфиг', 'err');
-    if (r.status === 401) { localStorage.removeItem(TOKEN_KEY); renderLogin(); }
-    return;
-  }
-  CONFIG = r.body;
-  if (!CONFIG.instances) CONFIG.instances = [];
-  render();
-}
+// ── Tabs ────────────────────────────────────────────────────────────────────
+const loaders = { overview: loadOverview, instances: loadInstances, caddy: loadCaddy, docker: loadDocker, provision: loadProvision };
+$('#tabs').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-view]');
+  if (!btn) return;
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('active', b === btn));
+  const name = btn.dataset.view;
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+  if (window.gsap) gsap.from('#view-' + name, { y: 14, autoAlpha: 0, duration: .4, ease: 'power2.out', clearProps: 'all' });
+  loaders[name]?.();
+});
 
-function render() {
-  document.getElementById('logout-link').style.display = 'inline-block';
+// ── Обзор ───────────────────────────────────────────────────────────────────
+const stBadge = (s) => ({
+  ok: '<span class="badge"><i class="dot ok"></i>OK</span>',
+  error: '<span class="badge"><i class="dot err"></i>ОШИБКА</span>',
+  incompatible: '<span class="badge"><i class="dot warn"></i>ПРОТОКОЛ</span>',
+  idle: '<span class="badge"><i class="dot idle"></i>IDLE</span>',
+}[s] || s);
 
-  const self = CONFIG.self || { host: '', upstream: '' };
-  const instances = CONFIG.instances || [];
-
-  const html = `
-    <h2>Оркестратор (self)</h2>
-    <div class="card">
-      <p class="muted" style="margin-bottom:12px">
-        Публичный hostname и внутренний адрес самого оркестратора. Если задать
-        <code>host</code>, Caddy будет проксировать его на UI оркестратора.
-      </p>
-      <div class="row">
-        <label>host</label>
-        <input type="text" id="self-host" value="${esc(self.host || '')}" placeholder="wishlist.example.com">
+async function loadOverview() {
+  const { instances } = await api('/api/instances').catch(() => ({ instances: [] }));
+  $('#ovGrid').innerHTML = instances.map(i => `
+    <div class="panel glass">
+      <h3>${esc(i.title || i.label)} ${stBadge(i.status)}</h3>
+      <div class="kv">
+        <div><dt>id</dt><dd>${esc(i.id)}</dd></div>
+        <div><dt>домен</dt><dd>${i.host ? `<a href="${esc(i.publicUrl)}" style="color:var(--accent2)">${esc(i.host)}</a>` : '—'}</dd></div>
+        <div><dt>upstream</dt><dd>${esc(i.url)}</dd></div>
+        <div><dt>подарков / категорий</dt><dd>${i.itemCount} / ${i.categoryCount}</dd></div>
+        <div><dt>протокол</dt><dd>${esc(i.protocolVersion || '—')}</dd></div>
+        <div><dt>задержка</dt><dd>${i.lastLatencyMs != null ? i.lastLatencyMs + ' мс' : '—'}</dd></div>
+        <div><dt>обновлён</dt><dd>${relTime(i.lastFetchedAt)}</dd></div>
+        ${i.lastError ? `<div><dt style="color:var(--err)">ошибка</dt><dd style="color:var(--err)">${esc(i.lastError)}</dd></div>` : ''}
       </div>
-      <div class="row">
-        <label>upstream</label>
-        <input type="url" id="self-upstream" value="${esc(self.upstream || '')}" placeholder="http://wishlist-orchestrator:3000">
+      <div class="row-actions">
+        <button class="btn sm" onclick="refreshInstance('${esc(i.id)}')">⟳ опросить</button>
       </div>
-    </div>
-
-    <h2>Инстансы (${instances.length})</h2>
-    <div id="instances">
-      ${instances.length ? instances.map(renderInstance).join('') : '<div class="empty">Нет инстансов. Добавьте первый.</div>'}
-    </div>
-    <div style="margin-top:10px">
-      <button class="ghost" onclick="addInstance()">+ Добавить инстанс</button>
-    </div>
-
-    <div class="actions" style="margin-top:24px">
-      <button class="ghost" onclick="loadConfig()">Отменить</button>
-      <button onclick="save()">Сохранить</button>
-    </div>
-  `;
-  document.getElementById('content').innerHTML = html;
+    </div>`).join('') || '<div class="panel glass">Нет инстансов.</div>';
+  refreshSyncBadge();
 }
 
-function renderInstance(inst, idx) {
-  return `
-    <div class="card" data-idx="${idx}">
-      <div class="inst-hdr">
-        <strong>${esc(inst.label || inst.id || '—')}</strong>
-        ${inst.host ? `<span class="badge">${esc(inst.host)}</span>` : ''}
-        <button class="danger" style="margin-left:auto" onclick="removeInstance(${idx})">Удалить</button>
-      </div>
-      <div class="row">
-        <label>id</label>
-        <input type="text" data-field="id" value="${esc(inst.id || '')}" placeholder="kojikk">
-      </div>
-      <div class="row">
-        <label>label</label>
-        <input type="text" data-field="label" value="${esc(inst.label || '')}" placeholder="Мой вишлист">
-      </div>
-      <div class="row">
-        <label>url</label>
-        <input type="url" data-field="url" value="${esc(inst.url || '')}" placeholder="http://tg-wishlist:3000">
-      </div>
-      <div class="row">
-        <label>host</label>
-        <input type="text" data-field="host" value="${esc(inst.host || '')}" placeholder="kojikk.wishlist.example.com (опционально)">
-      </div>
-    </div>`;
+async function refreshInstance(id) {
+  try {
+    await api(`/api/admin/instances/${encodeURIComponent(id)}/refresh`, { method: 'POST' });
+    toast(`Инстанс ${id} опрошен`);
+    loadOverview();
+  } catch (e) { toast(e.message, 'err'); }
 }
 
-function collect() {
-  const self = {
-    host:     document.getElementById('self-host').value.trim(),
-    upstream: document.getElementById('self-upstream').value.trim(),
-  };
-  const cards = document.querySelectorAll('#instances .card');
-  const instances = [...cards].map(card => {
-    const get = f => card.querySelector(`[data-field="${f}"]`).value.trim();
-    return {
-      id:    get('id'),
-      label: get('label'),
-      url:   get('url'),
-      host:  get('host'),
-    };
-  });
-  return {
-    self: (self.host || self.upstream) ? self : null,
-    instances,
-  };
+async function refreshSyncBadge() {
+  try {
+    const { lastSync } = await api('/api/admin/caddy');
+    const el = $('#syncBadge');
+    if (!lastSync) { el.innerHTML = '<i class="dot idle"></i>caddy: ещё не синкался'; return; }
+    el.innerHTML = lastSync.ok
+      ? `<i class="dot ok"></i>caddy: ${lastSync.hosts.length} хостов, ${relTime(lastSync.at)}`
+      : `<i class="dot err"></i>caddy: ошибка`;
+  } catch {}
 }
 
-function addInstance() {
-  // Сохраняем текущее состояние формы перед перерисовкой
-  CONFIG = collect();
-  CONFIG.instances.push({ id: '', label: '', url: '', host: '' });
-  render();
-  // Фокус на новый id
-  const cards = document.querySelectorAll('#instances .card');
-  const last = cards[cards.length - 1];
-  if (last) last.querySelector('[data-field="id"]').focus();
+// ── Инстансы (редактор конфига) ─────────────────────────────────────────────
+let cfgCache = { self: null, instances: [] };
+
+async function loadInstances() {
+  cfgCache = await api('/api/admin/config');
+  $('#selfHost').value = cfgCache.self?.host || '';
+  $('#selfUpstream').value = cfgCache.self?.upstream || '';
+  renderInstRows();
 }
 
-function removeInstance(idx) {
-  CONFIG = collect();
-  const inst = CONFIG.instances[idx];
-  if (inst.id && !confirm(`Удалить инстанс "${inst.label || inst.id}"?`)) return;
-  CONFIG.instances.splice(idx, 1);
-  render();
+function renderInstRows() {
+  $('#instList').innerHTML = (cfgCache.instances || []).map((inst, idx) => `
+    <div class="inst-row glass" data-idx="${idx}">
+      <div class="fields">
+        <div><label>id</label><input class="input" data-f="id" value="${esc(inst.id)}"></div>
+        <div><label>label</label><input class="input" data-f="label" value="${esc(inst.label || '')}"></div>
+        <div><label>url (docker-сеть)</label><input class="input" data-f="url" value="${esc(inst.url)}"></div>
+        <div><label>host (публичный домен)</label><input class="input" data-f="host" value="${esc(inst.host || '')}"></div>
+      </div>
+      <div class="checkline" data-check></div>
+      <div class="row-actions">
+        <button class="btn sm" data-act="validate">🔍 проверить URL</button>
+        <button class="btn sm" data-act="dns">🌐 DNS</button>
+        <button class="btn sm danger" data-act="del">✕ убрать</button>
+      </div>
+    </div>`).join('');
 }
 
-async function save() {
-  const payload = collect();
-  // Очистка пустых host у инстансов, чтобы не писать в JSON пустые строки
-  payload.instances = payload.instances.map(i => {
-    const o = { id: i.id, label: i.label, url: i.url };
-    if (i.host) o.host = i.host;
+function collectInstRows() {
+  return [...document.querySelectorAll('.inst-row')].map(row => {
+    const get = (f) => row.querySelector(`[data-f="${f}"]`).value.trim();
+    const o = { id: get('id'), label: get('label'), url: get('url') };
+    const host = get('host');
+    if (host) o.host = host;
     return o;
   });
-  const r = await api('/api/admin/config', {
-    method: 'PUT',
-    body: JSON.stringify(payload),
-  });
-  if (!r.ok) {
-    toast(r.body?.error || 'Ошибка сохранения', 'err');
-    return;
-  }
-  CONFIG = r.body;
-  toast('Сохранено. Caddy и инстансы перезагружены.', 'ok');
-  render();
 }
 
-init();
+$('#instList').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const row = btn.closest('.inst-row');
+  const check = row.querySelector('[data-check]');
+  const get = (f) => row.querySelector(`[data-f="${f}"]`).value.trim();
+  const act = btn.dataset.act;
+
+  if (act === 'del') {
+    cfgCache.instances = collectInstRows().filter((_, i) => i !== Number(row.dataset.idx));
+    renderInstRows();
+    return;
+  }
+  check.className = 'checkline'; check.textContent = '…';
+  try {
+    if (act === 'validate') {
+      const v = await api('/api/admin/validate', { method: 'POST', body: { url: get('url') } });
+      if (v.ok) {
+        check.className = 'checkline ok';
+        check.textContent = `✓ ${v.appName} v${v.protocolVersion} — «${v.title || 'без названия'}», ${v.itemCount} подарков, ${v.latencyMs} мс`;
+      } else {
+        check.className = 'checkline err';
+        check.textContent = `✗ ${v.status}: ${v.error}`;
+      }
+    } else if (act === 'dns') {
+      const host = get('host');
+      if (!host) { check.className = 'checkline err'; check.textContent = '✗ host пустой'; return; }
+      const d = await api('/api/admin/dns-check?host=' + encodeURIComponent(host));
+      if (d.match) { check.className = 'checkline ok'; check.textContent = `✓ ${host} → ${d.resolved.join(', ')} (совпадает с сервером)`; }
+      else if (d.resolved.length) { check.className = 'checkline err'; check.textContent = `✗ резолвится в ${d.resolved.join(', ')}, ожидался ${d.expected || '?'}`; }
+      else { check.className = 'checkline err'; check.textContent = `✗ не резолвится: ${d.error || 'нет A-записи'}`; }
+    }
+  } catch (err) {
+    check.className = 'checkline err';
+    check.textContent = '✗ ' + err.message;
+  }
+});
+
+$('#addInstBtn').onclick = () => {
+  cfgCache.instances = collectInstRows();
+  cfgCache.instances.push({ id: '', label: '', url: 'http://', host: '' });
+  renderInstRows();
+};
+
+$('#saveInstBtn').onclick = async () => {
+  const body = {
+    self: {
+      host: $('#selfHost').value.trim(),
+      upstream: $('#selfUpstream').value.trim(),
+    },
+    instances: collectInstRows(),
+  };
+  try {
+    await api('/api/admin/config', { method: 'PUT', body });
+    toast('Конфиг сохранён — registry и Caddy обновятся сами');
+    loadInstances();
+  } catch (e) { toast(e.message, 'err', 6000); }
+};
+
+// ── Caddy ───────────────────────────────────────────────────────────────────
+async function loadCaddy() {
+  try {
+    const { caddyfile, lastSync } = await api('/api/admin/caddy');
+    $('#caddyfile').textContent = caddyfile;
+    $('#caddyMeta').innerHTML = lastSync ? `
+      <div><dt>последний пуш</dt><dd>${relTime(lastSync.at)}</dd></div>
+      <div><dt>результат</dt><dd style="color:${lastSync.ok ? 'var(--ok)' : 'var(--err)'}">${lastSync.ok ? 'OK' : esc(lastSync.error || 'ошибка')}</dd></div>
+      <div><dt>хосты</dt><dd>${(lastSync.hosts || []).map(esc).join(', ')}</dd></div>`
+      : '<div><dt>последний пуш</dt><dd>ещё не было</dd></div>';
+  } catch (e) { toast(e.message, 'err'); }
+}
+$('#caddyReloadBtn').onclick = loadCaddy;
+$('#caddySyncBtn').onclick = async () => {
+  try {
+    const r = await api('/api/admin/caddy/sync', { method: 'POST' });
+    r.ok ? toast(`Caddy синкнут: ${r.hosts.length} хостов`) : toast('Caddy: ' + (r.error || 'ошибка'), 'err', 6000);
+    loadCaddy(); refreshSyncBadge();
+  } catch (e) { toast(e.message, 'err'); }
+};
+
+// ── Контейнеры ──────────────────────────────────────────────────────────────
+async function loadDocker() {
+  const tbl = $('#ctTable');
+  tbl.innerHTML = '<tr><td style="color:var(--muted)">Загрузка…</td></tr>';
+  try {
+    const { containers } = await api('/api/admin/docker/containers');
+    tbl.innerHTML = `
+      <tr><th>контейнер</th><th>образ</th><th>статус</th><th>инстанс</th><th></th></tr>` +
+      containers.map(c => {
+        const stateDot = c.state === 'running' ? 'ok' : 'err';
+        const dis = c.protected ? 'disabled title="защищён"' : '';
+        return `<tr>
+          <td><b>${esc(c.name)}</b>${c.protected ? ' 🔒' : ''}</td>
+          <td style="color:var(--muted)">${esc(c.image)}</td>
+          <td><span class="badge"><i class="dot ${stateDot}"></i>${esc(c.status)}</span></td>
+          <td>${c.instanceId ? esc(c.instanceId) : '<span style="color:var(--muted)">—</span>'}</td>
+          <td><div class="actions">
+            ${c.state === 'running'
+              ? `<button class="btn sm" data-ct="${esc(c.name)}" data-do="restart" ${dis}>⟳</button>
+                 <button class="btn sm" data-ct="${esc(c.name)}" data-do="stop" ${dis}>⏹</button>`
+              : `<button class="btn sm" data-ct="${esc(c.name)}" data-do="start" ${dis}>▶</button>`}
+            <button class="btn sm" data-ct="${esc(c.name)}" data-do="logs" ${dis}>📜</button>
+            <button class="btn sm" data-ct="${esc(c.name)}" data-do="update" ${dis}>⬆ образ</button>
+            <button class="btn sm danger" data-ct="${esc(c.name)}" data-do="remove" ${dis}>✕</button>
+          </div></td>
+        </tr>`;
+      }).join('');
+  } catch (e) {
+    tbl.innerHTML = `<tr><td style="color:var(--err)">${esc(e.message)}</td></tr>`;
+  }
+}
+$('#dockerReloadBtn').onclick = loadDocker;
+
+$('#ctTable').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-ct]');
+  if (!btn) return;
+  const name = btn.dataset.ct, act = btn.dataset.do;
+  try {
+    if (act === 'logs') {
+      const { logs } = await api(`/api/admin/docker/${encodeURIComponent(name)}/logs?tail=300`);
+      openModal(`📜 ${name} — последние 300 строк`, logs || '(пусто)');
+      return;
+    }
+    if (act === 'remove' && !confirm(`Удалить контейнер ${name}? Volumes останутся.`)) return;
+    if (act === 'stop'   && !confirm(`Остановить ${name}?`)) return;
+    btn.disabled = true;
+    if (act === 'update') {
+      toast(`Обновляю ${name}… (может занять минуту)`);
+      const r = await api(`/api/admin/docker/${encodeURIComponent(name)}/update`, { method: 'POST' });
+      toast(r.updated ? `✓ ${name} пересоздан на новом образе` : r.reason, r.updated ? 'ok' : 'err', 6000);
+    } else if (act === 'remove') {
+      await api(`/api/admin/docker/${encodeURIComponent(name)}`, { method: 'DELETE' });
+      toast(`Контейнер ${name} удалён`);
+    } else {
+      await api(`/api/admin/docker/${encodeURIComponent(name)}/${act}`, { method: 'POST' });
+      toast(`✓ ${name}: ${act}`);
+    }
+    loadDocker();
+  } catch (err) {
+    toast(err.message, 'err', 6000);
+    btn.disabled = false;
+  }
+});
+
+// ── Провижининг ─────────────────────────────────────────────────────────────
+async function loadProvision() {
+  try {
+    const { images } = await api('/api/admin/docker/images');
+    const sel = $('#pvImage');
+    const wish = images.filter(i => /wish/i.test(i) && !/orchestrator/i.test(i));
+    sel.innerHTML = [...wish, ...images.filter(i => !wish.includes(i))]
+      .map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
+  } catch (e) {
+    $('#pvImage').innerHTML = `<option value="">${esc(e.message)}</option>`;
+  }
+}
+
+$('#pvDnsBtn').onclick = async () => {
+  const host = $('#pvHost').value.trim();
+  const line = $('#pvDns');
+  if (!host) { line.className = 'checkline err'; line.textContent = '✗ введи host'; return; }
+  line.className = 'checkline'; line.textContent = '…';
+  try {
+    const d = await api('/api/admin/dns-check?host=' + encodeURIComponent(host));
+    if (d.match) { line.className = 'checkline ok'; line.textContent = `✓ ${host} → ${d.resolved.join(', ')}`; }
+    else if (d.resolved.length) { line.className = 'checkline err'; line.textContent = `✗ → ${d.resolved.join(', ')}, ожидался ${d.expected || '?'}`; }
+    else { line.className = 'checkline err'; line.textContent = `✗ не резолвится — создай A-запись (grey cloud) на ${d.expected || 'IP сервера'}`; }
+  } catch (e) { line.className = 'checkline err'; line.textContent = '✗ ' + e.message; }
+};
+
+$('#pvGoBtn').onclick = async () => {
+  const id = $('#pvId').value.trim();
+  const image = $('#pvImage').value;
+  if (!id) return toast('Заполни id', 'err');
+  if (!image) return toast('Выбери образ', 'err');
+  const extraEnv = {};
+  for (const line of $('#pvEnv').value.split('\n')) {
+    const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+    if (m) extraEnv[m[1]] = m[2].trim();
+  }
+  $('#pvGoBtn').disabled = true;
+  try {
+    const r = await api('/api/admin/provision', {
+      method: 'POST',
+      body: {
+        id, image,
+        label: $('#pvLabel').value.trim() || undefined,
+        host: $('#pvHost').value.trim() || undefined,
+        extraEnv: Object.keys(extraEnv).length ? extraEnv : undefined,
+      },
+    });
+    $('#pvResUrl').textContent = r.publicUrl || r.url;
+    $('#pvResToken').textContent = r.adminToken;
+    $('#pvResult').style.display = 'block';
+    if (window.gsap) gsap.from('#pvResult', { y: 16, autoAlpha: 0, duration: .5, ease: 'power3.out', clearProps: 'all' });
+    toast(`✓ Вишлист ${id} создан и зарегистрирован`);
+  } catch (e) {
+    toast(e.message, 'err', 7000);
+  } finally {
+    $('#pvGoBtn').disabled = false;
+  }
+};
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-copy]');
+  if (!btn) return;
+  navigator.clipboard.writeText($('#' + btn.dataset.copy).textContent)
+    .then(() => toast('Скопировано'));
+});
+
+// ── Старт ───────────────────────────────────────────────────────────────────
+(async () => {
+  if (token && await tryLogin(token).catch(() => false)) return;
+  $('#login').style.display = 'grid';
+})();
+
+// автообновление обзора, пока вкладка активна
+setInterval(() => {
+  if (document.visibilityState === 'visible' && $('#view-overview').classList.contains('active') && token) {
+    loadOverview();
+  }
+}, 30000);
 </script>
 </body>
 </html>

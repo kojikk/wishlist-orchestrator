@@ -1,131 +1,231 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Wishlist Orchestrator</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Onest:wght@300;400;500&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Вишлисты</title>
 <link rel="stylesheet" href="/theme.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎁</text></svg>">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0 }
-body {
-  background: var(--bg); color: var(--tx);
-  font-family: 'Onest', sans-serif; font-size: 14px; line-height: 1.55;
-  min-height: 100vh; padding: 32px 24px;
-}
-.wrap { max-width: 960px; margin: 0 auto }
-h1 {
-  font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 700;
-  letter-spacing: -.5px; margin-bottom: 4px;
-}
-h1 em { color: var(--ac); font-style: normal }
-.sub { color: var(--tx2); margin-bottom: 28px; font-size: 13px }
-h2 { font-family: 'Unbounded', sans-serif; font-size: 15px; font-weight: 600; margin: 24px 0 10px }
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: clamp(24px, 6vw, 64px) 20px 48px;
+  }
 
-.card {
-  background: var(--sf); border: 1px solid var(--br);
-  border-radius: 12px; padding: 16px 18px; margin-bottom: 10px;
-}
-.inst-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px }
-.inst-name { font-weight: 600 }
-.badge {
-  font-size: 10px; padding: 2px 8px; border-radius: 99px;
-  background: var(--sf2); color: var(--tx2); border: 1px solid var(--br);
-}
-.badge.ok    { background: rgba(74,222,128,.1); color: var(--gn); border-color: rgba(74,222,128,.2) }
-.badge.err   { background: rgba(248,113,113,.1); color: var(--red); border-color: rgba(248,113,113,.2) }
-.badge.warn  { background: rgba(232,200,74,.1); color: var(--ac); border-color: rgba(232,200,74,.28) }
-.inst-meta { color: var(--tx3); font-size: 11px }
-.inst-url  { color: var(--tx2); font-size: 12px; word-break: break-all; margin-top: 4px }
-.inst-err  { color: var(--red); font-size: 12px; margin-top: 6px; font-family: monospace }
-.empty { color: var(--tx3); font-size: 13px; padding: 24px 0; text-align: center }
+  header { margin-bottom: clamp(32px, 6vw, 56px); }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: .5em;
+    font: 600 .72rem/1 var(--font);
+    letter-spacing: .18em; text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+  .eyebrow::before {
+    content: ''; width: 26px; height: 1px;
+    background: var(--grad);
+  }
+  h1 {
+    font-size: clamp(2.4rem, 7vw, 4rem);
+    font-weight: 800;
+    letter-spacing: -.03em;
+    line-height: 1.05;
+  }
+  .sub {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: clamp(.95rem, 2.5vw, 1.1rem);
+    max-width: 46ch;
+  }
 
-pre {
-  background: var(--sf2); border: 1px solid var(--br);
-  border-radius: 8px; padding: 12px; font-size: 12px;
-  color: var(--tx2); overflow-x: auto; max-height: 320px;
-}
-a { color: var(--bl); text-decoration: none }
-a:hover { text-decoration: underline }
+  .cards { display: grid; gap: 16px; }
+
+  .card {
+    display: flex; align-items: center; gap: 18px;
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: background .2s, border-color .2s, transform .2s;
+    will-change: transform;
+  }
+  .card:hover {
+    background: var(--card-hover);
+    border-color: rgba(255,255,255,.16);
+    transform: translateY(-2px);
+  }
+  .card::after {            /* стрелка */
+    content: '→';
+    margin-left: auto;
+    font-size: 1.4rem;
+    color: var(--muted);
+    transition: transform .2s, color .2s;
+  }
+  .card:hover::after { transform: translateX(5px); color: var(--text); }
+
+  .avatar {
+    flex: none;
+    width: 54px; height: 54px;
+    border-radius: 16px;
+    display: grid; place-items: center;
+    font: 800 1.3rem/1 var(--font);
+    color: #0a0a14;
+    background: var(--grad);
+    box-shadow: 0 4px 24px rgba(139, 92, 246, .35);
+  }
+  .card:nth-child(2n) .avatar { background: linear-gradient(135deg, #f472b6, #fb923c); box-shadow: 0 4px 24px rgba(244,114,182,.3); }
+  .card:nth-child(3n) .avatar { background: linear-gradient(135deg, #22d3ee, #34d399); box-shadow: 0 4px 24px rgba(34,211,238,.3); }
+
+  .card .info { min-width: 0; }
+  .card .title {
+    font-size: 1.15rem; font-weight: 700;
+    letter-spacing: -.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card .meta {
+    margin-top: 6px;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 7px 14px;
+    font-size: .8rem; color: var(--muted);
+  }
+  .card .meta span { display: inline-flex; align-items: center; gap: .45em; }
+
+  .skeleton {
+    height: 98px;
+    border-radius: var(--radius);
+    background: linear-gradient(100deg, var(--card) 40%, rgba(255,255,255,.08) 50%, var(--card) 60%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  .empty, .error {
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  footer {
+    margin-top: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: .78rem; color: #4d4e66;
+  }
+  footer a { color: var(--muted); transition: color .15s; }
+  footer a:hover { color: var(--text); }
 </style>
 </head>
 <body>
+<canvas id="bg"></canvas>
+
 <div class="wrap">
-  <h1>Wishlist <em>Orchestrator</em></h1>
-  <div class="sub">Агрегатор нескольких вишлист-инстансов · <a href="/admin">админка</a></div>
+  <header>
+    <div class="eyebrow" data-anim>wishlist orchestrator</div>
+    <h1 data-anim>Вишлисты <span class="grad-text">для своих</span></h1>
+    <p class="sub" data-anim>Выбирай, кому даришь — и вперёд. Брони видны всем, кроме владельца вишлиста.</p>
+  </header>
 
-  <h2>Инстансы</h2>
-  <div id="instances"><div class="empty">Загрузка…</div></div>
+  <main class="cards" id="cards">
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+  </main>
 
-  <h2>Агрегированные данные</h2>
-  <div class="card">
-    <div class="inst-meta" style="margin-bottom:8px">
-      <code>GET /api/aggregate</code> — объединённые категории всех инстансов
-    </div>
-    <pre id="aggregate">Загрузка…</pre>
-  </div>
+  <footer data-anim>
+    <span>работает на wishlist-orchestrator</span>
+    <a href="/admin">⚙ админка</a>
+  </footer>
 </div>
 
+<script src="/vendor/gsap.min.js"></script>
 <script>
-const STATUS_LABELS = {
-  ok:           ['ok',         'ok'],
-  error:        ['error',      'err'],
-  incompatible: ['unsupported','err'],
-  idle:         ['idle',       'warn'],
+// ── Aurora background ───────────────────────────────────────────────────────
+(() => {
+  const c = document.getElementById('bg'), x = c.getContext('2d');
+  let W, H;
+  const resize = () => { W = c.width = innerWidth; H = c.height = innerHeight; };
+  resize(); addEventListener('resize', resize);
+  const blobs = [
+    { col: '139,92,246',  r: .50, s: .00010, p: 0.0 },
+    { col: '34,211,238',  r: .38, s: .00008, p: 2.1 },
+    { col: '236,72,153',  r: .32, s: .00006, p: 4.2 },
+    { col: '59,130,246',  r: .42, s: .00009, p: 5.6 },
+  ];
+  const frame = (t) => {
+    x.clearRect(0, 0, W, H);
+    for (const b of blobs) {
+      const cx = W * (.5 + .45 * Math.sin(t * b.s + b.p));
+      const cy = H * (.5 + .45 * Math.cos(t * b.s * 1.31 + b.p * 1.7));
+      const r  = Math.max(W, H) * b.r;
+      const g  = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, `rgba(${b.col},.14)`);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g;
+      x.fillRect(0, 0, W, H);
+    }
+  };
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) frame(9000);
+  else { const loop = (t) => { frame(t); requestAnimationFrame(loop); }; requestAnimationFrame(loop); }
+})();
+
+// ── Данные ──────────────────────────────────────────────────────────────────
+const cardsEl = document.getElementById('cards');
+
+const statusMeta = (s) => ({
+  ok:           { cls: 'ok',   text: 'онлайн' },
+  error:        { cls: 'err',  text: 'недоступен' },
+  incompatible: { cls: 'warn', text: 'несовместим' },
+  idle:         { cls: 'idle', text: 'проверяем…' },
+}[s] || { cls: 'idle', text: s });
+
+const plural = (n, one, few, many) => {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
 };
 
-async function load() {
-  try {
-    const [insts, agg] = await Promise.all([
-      fetch('/api/instances').then(r => r.json()),
-      fetch('/api/aggregate').then(r => r.json()),
-    ]);
-    renderInstances(insts.instances || []);
-    document.getElementById('aggregate').textContent =
-      `${agg.categories.length} categor(y/ies), ${Object.keys(agg.bookings).length} booking(s)\n\n` +
-      JSON.stringify(agg, null, 2);
-  } catch (e) {
-    document.getElementById('instances').innerHTML =
-      '<div class="empty">Не удалось загрузить: ' + e.message + '</div>';
-  }
-}
-
-function renderInstances(list) {
-  const el = document.getElementById('instances');
-  if (!list.length) {
-    el.innerHTML = '<div class="empty">Инстансы не сконфигурированы. ' +
-      'Добавьте их в <code>config/instances.json</code> (см. <code>instances.json.example</code>).</div>';
+function render(instances) {
+  if (!instances.length) {
+    cardsEl.innerHTML = '<div class="glass empty">Пока ни одного вишлиста. Загляни в <a href="/admin" style="color:var(--accent2)">админку</a>.</div>';
     return;
   }
-  el.innerHTML = list.map(i => {
-    const [label, cls] = STATUS_LABELS[i.status] || ['?', 'warn'];
-    const fetched = i.lastFetchedAt
-      ? new Date(i.lastFetchedAt).toLocaleString('ru')
-      : '—';
-    const srcs = (i.sources || []).map(s => `${s.emoji || ''}${s.title}`).join(', ') || '(нет)';
+  cardsEl.innerHTML = instances.map(i => {
+    const st = statusMeta(i.status);
+    const letter = (i.title || i.label || i.id).trim().charAt(0).toUpperCase();
+    const srcs = (i.sources || []).map(s => s.emoji).join(' ');
+    const count = i.status === 'ok'
+      ? `<span>🎁 ${i.itemCount} ${plural(i.itemCount, 'желание', 'желания', 'желаний')}</span>` : '';
     return `
-      <div class="card">
-        <div class="inst-head">
-          <span class="inst-name">${esc(i.label || i.id)}</span>
-          <span class="badge ${cls}">${label}</span>
-          ${i.protocolVersion ? `<span class="badge">proto ${esc(i.protocolVersion)}</span>` : ''}
+      <a class="card glass" href="${i.publicUrl}" data-anim>
+        <div class="avatar">${letter}</div>
+        <div class="info">
+          <div class="title">${i.title || i.label}</div>
+          <div class="meta">
+            <span><i class="dot ${st.cls}"></i>${st.text}</span>
+            ${count}
+            ${srcs ? `<span>${srcs}</span>` : ''}
+            <span style="opacity:.65">${i.host || ''}</span>
+          </div>
         </div>
-        <div class="inst-url"><a href="${esc(i.url)}" target="_blank">${esc(i.url)}</a></div>
-        <div class="inst-meta" style="margin-top:6px">
-          ${i.itemCount} items · парсеры: ${esc(srcs)} · последний рефреш: ${esc(fetched)}
-        </div>
-        ${i.lastError ? `<div class="inst-err">${esc(i.lastError)}</div>` : ''}
-      </div>`;
+      </a>`;
   }).join('');
+  if (window.gsap) {
+    gsap.from('#cards .card', {
+      y: 26, autoAlpha: 0, duration: .7, stagger: .09, ease: 'power3.out', clearProps: 'all',
+    });
+  }
 }
 
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+fetch('/api/instances')
+  .then(r => r.json())
+  .then(d => render(d.instances || []))
+  .catch(() => {
+    cardsEl.innerHTML = '<div class="glass error">Не удалось загрузить список — попробуй обновить страницу.</div>';
+  });
 
-load();
-setInterval(load, 15000);
+// ── Входные анимации ────────────────────────────────────────────────────────
+if (window.gsap) {
+  gsap.from('header [data-anim], footer[data-anim]', {
+    y: 22, autoAlpha: 0, duration: .8, stagger: .12, ease: 'power3.out', clearProps: 'all',
+  });
+}
 </script>
 </body>
 </html>

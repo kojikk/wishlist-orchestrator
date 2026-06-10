@@ -8,6 +8,8 @@ services:
     volumes:
       - ./config:/app/config
       - ./data:/app/data
+      # Docker-функции админки: lifecycle, логи, обновления, провижининг
+      - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - .env
     networks:

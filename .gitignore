@@ -8,3 +8,4 @@ proxy/config/*
 !proxy/config/.gitkeep
 *.log
 .DS_Store
+.env.bak*

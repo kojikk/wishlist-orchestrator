@@ -4,122 +4,92 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Вишлисты</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/theme.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎁</text></svg>">
 <style>
+  body { padding: 0 24px; }
   .wrap {
-    max-width: 880px;
+    max-width: 720px;
     margin: 0 auto;
-    padding: clamp(24px, 6vw, 64px) 20px 48px;
+    padding: clamp(48px, 10vh, 96px) 0 56px;
   }
 
-  header { margin-bottom: clamp(32px, 6vw, 56px); }
-  .eyebrow {
-    display: inline-flex; align-items: center; gap: .5em;
-    font: 600 .72rem/1 var(--font);
-    letter-spacing: .18em; text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 18px;
-  }
-  .eyebrow::before {
-    content: ''; width: 26px; height: 1px;
-    background: var(--grad);
-  }
-  h1 {
-    font-size: clamp(2.4rem, 7vw, 4rem);
-    font-weight: 800;
-    letter-spacing: -.03em;
-    line-height: 1.05;
-  }
-  .sub {
-    margin-top: 14px;
-    color: var(--muted);
-    font-size: clamp(.95rem, 2.5vw, 1.1rem);
-    max-width: 46ch;
-  }
+  header { margin-bottom: 40px; }
+  h1 { font-size: clamp(26px, 5vw, 34px); margin-bottom: 8px; }
+  h1 em { color: var(--ac); font-style: normal; }
+  .sub { color: var(--tx2); font-size: 14px; max-width: 44ch; }
 
-  .cards { display: grid; gap: 16px; }
+  .cards { display: flex; flex-direction: column; gap: 10px; }
 
-  .card {
-    display: flex; align-items: center; gap: 18px;
-    padding: 22px 24px;
-    position: relative;
-    overflow: hidden;
-    transition: background .2s, border-color .2s, transform .2s;
-    will-change: transform;
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    color: var(--tx);
+    transition: border-color .18s, background .18s;
   }
-  .card:hover {
-    background: var(--card-hover);
-    border-color: rgba(255,255,255,.16);
-    transform: translateY(-2px);
-  }
-  .card::after {            /* стрелка */
-    content: '→';
-    margin-left: auto;
-    font-size: 1.4rem;
-    color: var(--muted);
-    transition: transform .2s, color .2s;
-  }
-  .card:hover::after { transform: translateX(5px); color: var(--text); }
+  .item:hover { text-decoration: none; border-color: var(--abr); background: var(--sf2); }
 
-  .avatar {
+  .mono-mark {
     flex: none;
-    width: 54px; height: 54px;
-    border-radius: 16px;
+    width: 44px; height: 44px;
+    border-radius: 10px;
     display: grid; place-items: center;
-    font: 800 1.3rem/1 var(--font);
-    color: #0a0a14;
-    background: var(--grad);
-    box-shadow: 0 4px 24px rgba(139, 92, 246, .35);
+    font: 600 17px/1 var(--display);
+    color: var(--ac);
+    background: var(--adim);
+    border: 1px solid var(--abr);
   }
-  .card:nth-child(2n) .avatar { background: linear-gradient(135deg, #f472b6, #fb923c); box-shadow: 0 4px 24px rgba(244,114,182,.3); }
-  .card:nth-child(3n) .avatar { background: linear-gradient(135deg, #22d3ee, #34d399); box-shadow: 0 4px 24px rgba(34,211,238,.3); }
 
-  .card .info { min-width: 0; }
-  .card .title {
-    font-size: 1.15rem; font-weight: 700;
-    letter-spacing: -.01em;
+  .item .info { min-width: 0; flex: 1; }
+  .item .title {
+    font-weight: 600;
+    font-size: 15px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .card .meta {
-    margin-top: 6px;
-    display: flex; align-items: center; flex-wrap: wrap; gap: 7px 14px;
-    font-size: .8rem; color: var(--muted);
+  .item .meta {
+    margin-top: 3px;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 4px 14px;
+    font-size: 12px; color: var(--tx2);
   }
-  .card .meta span { display: inline-flex; align-items: center; gap: .45em; }
+  .item .meta span { display: inline-flex; align-items: center; gap: 6px; }
+  .item .meta .host { color: var(--tx3); }
+
+  .item .arrow {
+    color: var(--tx3);
+    font-size: 16px;
+    transition: transform .18s, color .18s;
+  }
+  .item:hover .arrow { transform: translateX(4px); color: var(--ac); }
 
   .skeleton {
-    height: 98px;
-    border-radius: var(--radius);
-    background: linear-gradient(100deg, var(--card) 40%, rgba(255,255,255,.08) 50%, var(--card) 60%);
+    height: 82px;
+    border-radius: 12px;
+    background: linear-gradient(100deg, var(--sf) 40%, var(--sf2) 50%, var(--sf) 60%);
     background-size: 200% 100%;
     animation: shimmer 1.4s infinite;
   }
   @keyframes shimmer { to { background-position: -200% 0; } }
 
-  .empty, .error {
-    padding: 40px 24px;
-    text-align: center;
-    color: var(--muted);
-  }
+  .empty, .error { padding: 32px 20px; text-align: center; color: var(--tx2); font-size: 13px; }
 
   footer {
-    margin-top: 56px;
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--br);
     display: flex; align-items: center; justify-content: space-between;
-    font-size: .78rem; color: #4d4e66;
+    font-size: 12px; color: var(--tx3);
   }
-  footer a { color: var(--muted); transition: color .15s; }
-  footer a:hover { color: var(--text); }
+  footer a { color: var(--tx2); }
 </style>
 </head>
 <body>
-<canvas id="bg"></canvas>
-
 <div class="wrap">
   <header>
-    <div class="eyebrow" data-anim>wishlist orchestrator</div>
-    <h1 data-anim>Вишлисты <span class="grad-text">для своих</span></h1>
-    <p class="sub" data-anim>Выбирай, кому даришь — и вперёд. Брони видны всем, кроме владельца вишлиста.</p>
+    <h1 data-anim>Вишлисты<em>.</em></h1>
+    <p class="sub" data-anim>Все вишлисты в одном месте. Брони видны гостям, но не владельцу — сюрприз остаётся сюрпризом.</p>
   </header>
 
   <main class="cards" id="cards">
@@ -128,51 +98,21 @@
   </main>
 
   <footer data-anim>
-    <span>работает на wishlist-orchestrator</span>
-    <a href="/admin">⚙ админка</a>
+    <span>wishlist orchestrator</span>
+    <a href="/admin">Админка</a>
   </footer>
 </div>
 
 <script src="/vendor/gsap.min.js"></script>
 <script>
-// ── Aurora background ───────────────────────────────────────────────────────
-(() => {
-  const c = document.getElementById('bg'), x = c.getContext('2d');
-  let W, H;
-  const resize = () => { W = c.width = innerWidth; H = c.height = innerHeight; };
-  resize(); addEventListener('resize', resize);
-  const blobs = [
-    { col: '139,92,246',  r: .50, s: .00010, p: 0.0 },
-    { col: '34,211,238',  r: .38, s: .00008, p: 2.1 },
-    { col: '236,72,153',  r: .32, s: .00006, p: 4.2 },
-    { col: '59,130,246',  r: .42, s: .00009, p: 5.6 },
-  ];
-  const frame = (t) => {
-    x.clearRect(0, 0, W, H);
-    for (const b of blobs) {
-      const cx = W * (.5 + .45 * Math.sin(t * b.s + b.p));
-      const cy = H * (.5 + .45 * Math.cos(t * b.s * 1.31 + b.p * 1.7));
-      const r  = Math.max(W, H) * b.r;
-      const g  = x.createRadialGradient(cx, cy, 0, cx, cy, r);
-      g.addColorStop(0, `rgba(${b.col},.14)`);
-      g.addColorStop(1, 'rgba(0,0,0,0)');
-      x.fillStyle = g;
-      x.fillRect(0, 0, W, H);
-    }
-  };
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) frame(9000);
-  else { const loop = (t) => { frame(t); requestAnimationFrame(loop); }; requestAnimationFrame(loop); }
-})();
-
-// ── Данные ──────────────────────────────────────────────────────────────────
 const cardsEl = document.getElementById('cards');
 
 const statusMeta = (s) => ({
   ok:           { cls: 'ok',   text: 'онлайн' },
   error:        { cls: 'err',  text: 'недоступен' },
   incompatible: { cls: 'warn', text: 'несовместим' },
-  idle:         { cls: 'idle', text: 'проверяем…' },
-}[s] || { cls: 'idle', text: s });
+  idle:         { cls: '',     text: 'проверяем' },
+}[s] || { cls: '', text: s });
 
 const plural = (n, one, few, many) => {
   const m10 = n % 10, m100 = n % 100;
@@ -181,34 +121,36 @@ const plural = (n, one, few, many) => {
   return many;
 };
 
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, m =>
+  ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
+
 function render(instances) {
   if (!instances.length) {
-    cardsEl.innerHTML = '<div class="glass empty">Пока ни одного вишлиста. Загляни в <a href="/admin" style="color:var(--accent2)">админку</a>.</div>';
+    cardsEl.innerHTML = '<div class="card empty">Пока ни одного вишлиста. Загляните в <a href="/admin">админку</a>.</div>';
     return;
   }
   cardsEl.innerHTML = instances.map(i => {
     const st = statusMeta(i.status);
     const letter = (i.title || i.label || i.id).trim().charAt(0).toUpperCase();
-    const srcs = (i.sources || []).map(s => s.emoji).join(' ');
     const count = i.status === 'ok'
-      ? `<span>🎁 ${i.itemCount} ${plural(i.itemCount, 'желание', 'желания', 'желаний')}</span>` : '';
+      ? `<span>${i.itemCount} ${plural(i.itemCount, 'желание', 'желания', 'желаний')}</span>` : '';
     return `
-      <a class="card glass" href="${i.publicUrl}" data-anim>
-        <div class="avatar">${letter}</div>
+      <a class="item card" href="${esc(i.publicUrl)}" data-anim>
+        <div class="mono-mark">${esc(letter)}</div>
         <div class="info">
-          <div class="title">${i.title || i.label}</div>
+          <div class="title">${esc(i.title || i.label)}</div>
           <div class="meta">
             <span><i class="dot ${st.cls}"></i>${st.text}</span>
             ${count}
-            ${srcs ? `<span>${srcs}</span>` : ''}
-            <span style="opacity:.65">${i.host || ''}</span>
+            <span class="host">${esc(i.host || '')}</span>
           </div>
         </div>
+        <span class="arrow">&rarr;</span>
       </a>`;
   }).join('');
   if (window.gsap) {
-    gsap.from('#cards .card', {
-      y: 26, autoAlpha: 0, duration: .7, stagger: .09, ease: 'power3.out', clearProps: 'all',
+    gsap.from('#cards .item', {
+      y: 14, autoAlpha: 0, duration: .55, stagger: .07, ease: 'power2.out', clearProps: 'all',
     });
   }
 }
@@ -217,13 +159,12 @@ fetch('/api/instances')
   .then(r => r.json())
   .then(d => render(d.instances || []))
   .catch(() => {
-    cardsEl.innerHTML = '<div class="glass error">Не удалось загрузить список — попробуй обновить страницу.</div>';
+    cardsEl.innerHTML = '<div class="card error">Не удалось загрузить список — попробуйте обновить страницу.</div>';
   });
 
-// ── Входные анимации ────────────────────────────────────────────────────────
 if (window.gsap) {
-  gsap.from('header [data-anim], footer[data-anim]', {
-    y: 22, autoAlpha: 0, duration: .8, stagger: .12, ease: 'power3.out', clearProps: 'all',
+  gsap.from('[data-anim]', {
+    y: 12, autoAlpha: 0, duration: .6, stagger: .1, ease: 'power2.out', clearProps: 'all',
   });
 }
 </script>

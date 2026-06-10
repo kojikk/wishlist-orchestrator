@@ -42,7 +42,7 @@ wishlist-orchestrator/
 ├── public/
 │   ├── index.html               # Витрина: карточки вишлистов
 │   ├── admin.html               # Админка: инстансы/Caddy/контейнеры/провижининг
-│   ├── theme.css                # Общая тема (aurora dark)
+│   ├── theme.css                # Палитра wishlist-app (тёплый чёрный + золото)
 │   └── vendor/gsap.min.js       # GSAP (вендорим — CDN в РФ ненадёжны)
 ├── config/
 │   ├── instances.json           # Список инстансов (не в git)

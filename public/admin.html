@@ -4,162 +4,170 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Оркестратор — админка</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700&family=Onest:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/theme.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
 <style>
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 20px 64px; }
+  body { padding: 0 24px; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 0 64px; }
 
   /* ── Login ── */
   #login {
     position: fixed; inset: 0; z-index: 50;
     display: grid; place-items: center;
-    background: rgba(7,7,15,.55);
-    backdrop-filter: blur(6px);
+    background: var(--bg);
   }
-  #login .panel { width: min(380px, calc(100vw - 40px)); padding: 34px 30px; }
-  #login h2 { font-size: 1.35rem; letter-spacing: -.02em; margin-bottom: 6px; }
-  #login p  { color: var(--muted); font-size: .85rem; margin-bottom: 22px; }
-  #login .err { color: var(--err); font-size: .8rem; margin-top: 12px; min-height: 1em; }
+  #login .panel { width: min(380px, calc(100vw - 48px)); padding: 32px 28px; }
+  #login h2 { font-size: 17px; margin-bottom: 6px; }
+  #login h2 em { color: var(--ac); font-style: normal; }
+  #login p  { color: var(--tx2); font-size: 13px; margin-bottom: 20px; }
+  #login .err { color: var(--red); font-size: 12px; margin-top: 10px; min-height: 1em; }
 
   /* ── Shell ── */
-  .topbar {
-    display: flex; align-items: center; gap: 14px;
-    margin-bottom: 26px;
-  }
-  .topbar h1 { font-size: 1.3rem; font-weight: 800; letter-spacing: -.02em; }
+  .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .topbar h1 { font-size: 17px; }
+  .topbar h1 em { color: var(--ac); font-style: normal; }
   .topbar .spacer { flex: 1; }
 
   nav.tabs {
-    display: flex; gap: 6px; flex-wrap: wrap;
-    margin-bottom: 26px;
-    padding: 6px;
-    border-radius: 16px;
+    display: flex; gap: 2px; flex-wrap: wrap;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--br);
   }
   nav.tabs button {
-    font: 600 .85rem/1 var(--font);
-    color: var(--muted);
+    font: 500 13px/1 var(--font);
+    color: var(--tx2);
     background: none; border: none;
-    padding: .7em 1.15em;
-    border-radius: 11px;
+    border-bottom: 2px solid transparent;
+    padding: 10px 14px;
+    margin-bottom: -1px;
     cursor: pointer;
-    transition: color .15s, background .15s;
+    transition: color .15s, border-color .15s;
   }
-  nav.tabs button:hover { color: var(--text); }
-  nav.tabs button.active { color: var(--text); background: rgba(255,255,255,.08); }
+  nav.tabs button:hover { color: var(--tx); }
+  nav.tabs button.active { color: var(--ac); border-bottom-color: var(--ac); }
 
   .view { display: none; }
   .view.active { display: block; }
 
-  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 
-  .panel { padding: 22px; }
-  .panel h3 { font-size: 1rem; margin-bottom: 14px; display: flex; align-items: center; gap: .6em; }
+  .panel { padding: 20px; }
+  .panel h3 { font-size: 13px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
 
-  .kv { display: flex; flex-direction: column; gap: 7px; font-size: .82rem; }
+  .kv { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
   .kv div { display: flex; justify-content: space-between; gap: 12px; }
-  .kv dt { color: var(--muted); }
+  .kv dt { color: var(--tx2); flex: none; }
   .kv dd { text-align: right; word-break: break-all; }
 
-  .row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  .row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
 
   /* instances editor */
-  .inst-row { padding: 18px; margin-bottom: 12px; }
+  .inst-row { padding: 16px 18px; margin-bottom: 10px; }
   .inst-row .fields {
     display: grid; gap: 10px;
     grid-template-columns: minmax(90px,.6fr) minmax(120px,.8fr) minmax(180px,1.2fr) minmax(180px,1.2fr);
   }
   @media (max-width: 760px) { .inst-row .fields { grid-template-columns: 1fr 1fr; } }
-  .inst-row label { font-size: .68rem; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; display: block; margin-bottom: 5px; }
-  .checkline { font-size: .78rem; margin-top: 10px; min-height: 1.2em; }
-  .checkline.ok { color: var(--ok); }
-  .checkline.err { color: var(--err); }
+  label.fl {
+    font-size: 10px; color: var(--tx3); letter-spacing: .07em; text-transform: uppercase;
+    display: block; margin-bottom: 5px;
+  }
+  .checkline { font-size: 12px; margin-top: 10px; min-height: 1.2em; color: var(--tx2); }
+  .checkline.ok { color: var(--gn); }
+  .checkline.err { color: var(--red); }
 
   pre.code {
-    font: .78rem/1.55 'SF Mono', Consolas, monospace;
-    background: rgba(0,0,0,.4);
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
-    padding: 16px;
+    font: 12px/1.6 var(--mono);
+    background: var(--sf2);
+    border: 1px solid var(--br);
+    border-radius: 9px;
+    padding: 14px;
     overflow: auto;
     max-height: 480px;
     white-space: pre;
+    color: var(--tx2);
   }
 
-  table.ct { width: 100%; border-collapse: collapse; font-size: .84rem; }
-  table.ct th { text-align: left; color: var(--muted); font-weight: 600; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; padding: 8px 10px; }
-  table.ct td { padding: 12px 10px; border-top: 1px solid var(--card-border); vertical-align: middle; }
+  table.ct { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.ct th {
+    text-align: left; color: var(--tx3); font-weight: 500; font-size: 10px;
+    letter-spacing: .07em; text-transform: uppercase; padding: 8px 10px;
+  }
+  table.ct td { padding: 11px 10px; border-top: 1px solid var(--br); vertical-align: middle; }
   table.ct .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .lock { color: var(--tx3); font-size: 11px; margin-left: 6px; }
 
   /* modal */
   #modal {
     position: fixed; inset: 0; z-index: 60;
     display: none; place-items: center;
-    background: rgba(0,0,0,.6);
-    backdrop-filter: blur(4px);
+    background: rgba(0,0,0,.65);
     padding: 20px;
   }
   #modal.open { display: grid; }
-  #modal .box { width: min(880px, 100%); max-height: 80vh; display: flex; flex-direction: column; padding: 20px; }
+  #modal .box { width: min(880px, 100%); max-height: 80vh; display: flex; flex-direction: column; padding: 20px; background: var(--sf); }
   #modal .box pre { flex: 1; margin-top: 12px; max-height: none; }
   #modal .head { display: flex; align-items: center; justify-content: space-between; }
+  #modal .head h3 { font-size: 13px; }
 
   /* toasts */
-  #toasts { position: fixed; top: 18px; right: 18px; z-index: 70; display: flex; flex-direction: column; gap: 10px; }
+  #toasts { position: fixed; top: 16px; right: 16px; z-index: 70; display: flex; flex-direction: column; gap: 8px; }
   .toast {
-    padding: 13px 18px;
-    font-size: .85rem;
-    border-radius: 13px;
-    border: 1px solid var(--card-border);
-    background: rgba(20,20,36,.92);
-    backdrop-filter: blur(10px);
+    padding: 11px 16px;
+    font-size: 13px;
+    border-radius: 10px;
+    border: 1px solid var(--br2);
+    background: var(--sf2);
     max-width: 360px;
-    box-shadow: 0 8px 30px rgba(0,0,0,.45);
+    box-shadow: 0 8px 28px rgba(0,0,0,.5);
   }
-  .toast.ok  { border-color: rgba(52,211,153,.4); }
-  .toast.err { border-color: rgba(248,113,113,.4); }
+  .toast.ok  { border-color: rgba(74,222,128,.3); }
+  .toast.err { border-color: rgba(248,113,113,.3); }
 
-  .hint { font-size: .78rem; color: var(--muted); margin-top: 8px; line-height: 1.5; }
-  .formgrid { display: grid; gap: 14px; max-width: 560px; }
+  .hint { font-size: 12px; color: var(--tx3); margin-top: 10px; line-height: 1.6; }
+  .formgrid { display: grid; gap: 14px; max-width: 540px; }
   .copyable {
     display: flex; align-items: center; gap: 8px;
-    font: .8rem/1.4 'SF Mono', Consolas, monospace;
-    background: rgba(0,0,0,.35);
-    border: 1px solid var(--card-border);
-    border-radius: 10px;
-    padding: 10px 12px;
+    font: 12px/1.5 var(--mono);
+    background: var(--sf2);
+    border: 1px solid var(--br);
+    border-radius: 9px;
+    padding: 9px 12px;
     word-break: break-all;
   }
+  .result-block { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--br); }
+  .result-block h3 { color: var(--gn); }
 </style>
 </head>
 <body>
-<canvas id="bg"></canvas>
 
 <!-- ── Login gate ── -->
 <div id="login" style="display:none">
-  <div class="panel glass">
-    <h2>⚙️ Админка <span class="grad-text">оркестратора</span></h2>
-    <p>Вставь админ-токен из <code>.env</code> — он сохранится в этом браузере.</p>
+  <div class="panel card">
+    <h2>Оркестратор<em>.</em> Админка</h2>
+    <p>Вставьте админ-токен из <code>.env</code> — он сохранится в этом браузере.</p>
     <input class="input" id="tokenInput" type="password" placeholder="ADMIN_TOKEN" autocomplete="off">
     <div class="err" id="loginErr"></div>
-    <button class="btn primary" id="loginBtn" style="width:100%;justify-content:center;margin-top:8px">Войти</button>
+    <button class="btn primary" id="loginBtn" style="width:100%;justify-content:center;margin-top:10px">Войти</button>
   </div>
 </div>
 
 <div class="wrap" id="app" style="visibility:hidden">
   <div class="topbar">
-    <h1>⚙️ Оркестратор</h1>
-    <span class="badge" id="syncBadge"><i class="dot idle"></i>caddy</span>
+    <h1>Оркестратор<em>.</em></h1>
+    <span class="badge" id="syncBadge"><i class="dot"></i>caddy</span>
     <div class="spacer"></div>
-    <a class="btn sm" href="/">← к вишлистам</a>
+    <a class="btn sm" href="/" style="text-decoration:none;color:var(--tx2)">К вишлистам</a>
     <button class="btn sm" id="logoutBtn">Выйти</button>
   </div>
 
-  <nav class="tabs glass" id="tabs">
+  <nav class="tabs" id="tabs">
     <button data-view="overview" class="active">Обзор</button>
     <button data-view="instances">Инстансы</button>
     <button data-view="caddy">Caddy</button>
     <button data-view="docker">Контейнеры</button>
-    <button data-view="provision">+ Новый вишлист</button>
+    <button data-view="provision">Новый вишлист</button>
   </nav>
 
   <!-- ── Обзор ── -->
@@ -169,27 +177,28 @@
 
   <!-- ── Инстансы ── -->
   <section class="view" id="view-instances">
-    <div class="panel glass" style="margin-bottom:12px">
-      <h3>🛰 Сам оркестратор (self)</h3>
-      <div class="inst-row-self" style="display:grid;gap:10px;grid-template-columns:1fr 1fr">
-        <div><label>host</label><input class="input" id="selfHost" placeholder="wishlist.example.ru"></div>
-        <div><label>upstream</label><input class="input" id="selfUpstream" placeholder="http://wishlist-orchestrator:3000"></div>
+    <div class="panel card" style="margin-bottom:10px">
+      <h3>Сам оркестратор (self)</h3>
+      <div style="display:grid;gap:10px;grid-template-columns:1fr 1fr">
+        <div><label class="fl">host</label><input class="input" id="selfHost" placeholder="wishlist.example.ru"></div>
+        <div><label class="fl">upstream</label><input class="input" id="selfUpstream" placeholder="http://wishlist-orchestrator:3000"></div>
       </div>
     </div>
     <div id="instList"></div>
     <div class="row-actions">
-      <button class="btn" id="addInstBtn">+ Добавить инстанс</button>
-      <button class="btn primary" id="saveInstBtn">💾 Сохранить конфиг</button>
+      <button class="btn" id="addInstBtn">Добавить инстанс</button>
+      <button class="btn primary" id="saveInstBtn">Сохранить конфиг</button>
     </div>
-    <p class="hint">Сохранение перезаписывает <code>config/instances.json</code> целиком: registry перечитает его и Caddy получит свежий конфиг автоматически. Кнопка «проверить» дергает manifest-handshake инстанса, «DNS» — сверяет A-запись хоста с IP сервера.</p>
+    <p class="hint">Сохранение перезаписывает <code>config/instances.json</code> целиком: registry перечитает его, Caddy получит свежий конфиг автоматически. «Проверить URL» — manifest-handshake инстанса, «DNS» — сверка A-записи хоста с IP сервера.</p>
   </section>
 
   <!-- ── Caddy ── -->
   <section class="view" id="view-caddy">
-    <div class="panel glass">
-      <h3>🔀 Caddyfile <span class="spacer" style="flex:1"></span>
-        <button class="btn sm" id="caddyReloadBtn">⟳ обновить</button>
-        <button class="btn sm primary" id="caddySyncBtn">⤴ синкнуть в Caddy</button>
+    <div class="panel card">
+      <h3>Caddyfile
+        <span style="flex:1"></span>
+        <button class="btn sm" id="caddyReloadBtn">Обновить</button>
+        <button class="btn sm primary" id="caddySyncBtn">Синкнуть в Caddy</button>
       </h3>
       <div class="kv" id="caddyMeta" style="margin-bottom:14px"></div>
       <pre class="code" id="caddyfile">…</pre>
@@ -198,56 +207,56 @@
 
   <!-- ── Контейнеры ── -->
   <section class="view" id="view-docker">
-    <div class="panel glass">
-      <h3>🐳 Контейнеры сети вишлистов
+    <div class="panel card">
+      <h3>Контейнеры сети вишлистов
         <span style="flex:1"></span>
-        <button class="btn sm" id="dockerReloadBtn">⟳ обновить</button>
+        <button class="btn sm" id="dockerReloadBtn">Обновить</button>
       </h3>
       <div style="overflow-x:auto">
         <table class="ct" id="ctTable"></table>
       </div>
-      <p class="hint">«Обновить образ» тянет свежий образ по тому же тегу и пересоздаёт контейнер с теми же настройками (env/volumes/сети). Для локально собранных образов сначала пересобери образ на хосте. Caddy и сам оркестратор защищены от управления отсюда.</p>
+      <p class="hint">«Обновить образ» тянет свежий образ по тому же тегу и пересоздаёт контейнер с теми же настройками (env/volumes/сети). Для локально собранных образов сначала пересоберите образ на хосте. Caddy и сам оркестратор защищены от управления отсюда.</p>
     </div>
   </section>
 
   <!-- ── Провижининг ── -->
   <section class="view" id="view-provision">
-    <div class="panel glass">
-      <h3>✨ Новый вишлист</h3>
+    <div class="panel card">
+      <h3>Новый вишлист</h3>
       <div class="formgrid">
-        <div><label style="font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px">id (a-z0-9_-)</label>
+        <div><label class="fl">id (a-z0-9_-)</label>
           <input class="input" id="pvId" placeholder="vasya"></div>
-        <div><label style="font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px">Название (label)</label>
+        <div><label class="fl">Название (label)</label>
           <input class="input" id="pvLabel" placeholder="Вишлист Васи"></div>
-        <div><label style="font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px">Публичный домен (host)</label>
+        <div><label class="fl">Публичный домен (host)</label>
           <input class="input" id="pvHost" placeholder="vasya-wishlist.kojikk.ru">
           <div class="checkline" id="pvDns"></div></div>
-        <div><label style="font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px">Образ</label>
+        <div><label class="fl">Образ</label>
           <select class="input" id="pvImage"></select></div>
-        <div><label style="font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:5px">Доп. env (KEY=VALUE на строку, опционально)</label>
+        <div><label class="fl">Доп. env (KEY=VALUE на строку, опционально)</label>
           <textarea class="input" id="pvEnv" rows="3" placeholder="STEAM_API_KEY=..."></textarea></div>
         <div class="row-actions">
-          <button class="btn sm" id="pvDnsBtn">🌐 проверить DNS</button>
-          <button class="btn primary" id="pvGoBtn">🚀 Создать</button>
+          <button class="btn sm" id="pvDnsBtn">Проверить DNS</button>
+          <button class="btn primary" id="pvGoBtn">Создать</button>
         </div>
       </div>
-      <div id="pvResult" style="display:none;margin-top:22px">
-        <h3 style="color:var(--ok)">✓ Вишлист создан</h3>
+      <div id="pvResult" class="result-block" style="display:none">
+        <h3>Вишлист создан</h3>
         <div class="kv" style="gap:12px">
           <div><dt>Публичный URL</dt></div>
-          <div class="copyable"><span id="pvResUrl"></span><button class="btn sm" data-copy="pvResUrl">⧉</button></div>
-          <div><dt>Админ-токен владельца (показывается один раз — передай его)</dt></div>
-          <div class="copyable"><span id="pvResToken"></span><button class="btn sm" data-copy="pvResToken">⧉</button></div>
+          <div class="copyable"><span id="pvResUrl"></span><button class="btn sm" data-copy="pvResUrl">Копировать</button></div>
+          <div><dt>Админ-токен владельца (показывается один раз — передайте его)</dt></div>
+          <div class="copyable"><span id="pvResToken"></span><button class="btn sm" data-copy="pvResToken">Копировать</button></div>
         </div>
-        <p class="hint">Не забудь: 1) создать A-запись DNS на IP сервера (grey cloud!), 2) если это Telegram mini-app — прописать URL у BotFather.</p>
+        <p class="hint">Не забудьте: 1) создать A-запись DNS на IP сервера (grey cloud), 2) если это Telegram mini-app — прописать URL у BotFather.</p>
       </div>
     </div>
   </section>
 </div>
 
 <!-- modal -->
-<div id="modal"><div class="box glass">
-  <div class="head"><h3 id="modalTitle"></h3><button class="btn sm" onclick="closeModal()">✕ закрыть</button></div>
+<div id="modal"><div class="box card">
+  <div class="head"><h3 id="modalTitle"></h3><button class="btn sm" onclick="closeModal()">Закрыть</button></div>
   <pre class="code" id="modalBody"></pre>
 </div></div>
 
@@ -256,32 +265,6 @@
 <script src="/vendor/gsap.min.js"></script>
 <script>
 'use strict';
-
-// ── Aurora bg (приглушённый) ────────────────────────────────────────────────
-(() => {
-  const c = document.getElementById('bg'), x = c.getContext('2d');
-  let W, H;
-  const resize = () => { W = c.width = innerWidth; H = c.height = innerHeight; };
-  resize(); addEventListener('resize', resize);
-  const blobs = [
-    { col: '139,92,246', r: .48, s: .00007, p: 0 },
-    { col: '34,211,238', r: .36, s: .00005, p: 2.4 },
-    { col: '59,130,246', r: .40, s: .00006, p: 5.1 },
-  ];
-  const frame = (t) => {
-    x.clearRect(0, 0, W, H);
-    for (const b of blobs) {
-      const cx = W * (.5 + .46 * Math.sin(t * b.s + b.p));
-      const cy = H * (.5 + .46 * Math.cos(t * b.s * 1.27 + b.p * 1.6));
-      const g = x.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * b.r);
-      g.addColorStop(0, `rgba(${b.col},.09)`);
-      g.addColorStop(1, 'rgba(0,0,0,0)');
-      x.fillStyle = g; x.fillRect(0, 0, W, H);
-    }
-  };
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) frame(9000);
-  else { const loop = (t) => { frame(t); requestAnimationFrame(loop); }; requestAnimationFrame(loop); }
-})();
 
 // ── Хелперы ─────────────────────────────────────────────────────────────────
 const $ = (sel) => document.querySelector(sel);
@@ -311,9 +294,9 @@ function toast(msg, kind = 'ok', ms = 4200) {
   el.className = `toast ${kind}`;
   el.textContent = msg;
   $('#toasts').appendChild(el);
-  if (window.gsap) gsap.from(el, { x: 60, autoAlpha: 0, duration: .4, ease: 'power3.out' });
+  if (window.gsap) gsap.from(el, { x: 40, autoAlpha: 0, duration: .35, ease: 'power2.out' });
   setTimeout(() => {
-    if (window.gsap) gsap.to(el, { x: 60, autoAlpha: 0, duration: .35, onComplete: () => el.remove() });
+    if (window.gsap) gsap.to(el, { x: 40, autoAlpha: 0, duration: .3, onComplete: () => el.remove() });
     else el.remove();
   }, ms);
 }
@@ -346,13 +329,13 @@ $('#logoutBtn').onclick = logout;
 
 async function tryLogin(t) {
   const r = await fetch('/api/admin/ping', { headers: { 'Authorization': 'Bearer ' + t } });
-  if (r.status === 503) { $('#loginErr').textContent = 'Админка выключена: задай ADMIN_TOKEN в .env оркестратора.'; return false; }
+  if (r.status === 503) { $('#loginErr').textContent = 'Админка выключена: задайте ADMIN_TOKEN в .env оркестратора.'; return false; }
   if (!r.ok) { $('#loginErr').textContent = 'Неверный токен.'; return false; }
   token = t;
   localStorage.setItem(TOKEN_KEY, t);
   $('#login').style.display = 'none';
   $('#app').style.visibility = 'visible';
-  if (window.gsap) gsap.from('#app > *', { y: 18, autoAlpha: 0, duration: .55, stagger: .07, ease: 'power3.out', clearProps: 'all' });
+  if (window.gsap) gsap.from('#app > *', { y: 10, autoAlpha: 0, duration: .45, stagger: .06, ease: 'power2.out', clearProps: 'all' });
   loadOverview();
   return true;
 }
@@ -367,37 +350,37 @@ $('#tabs').addEventListener('click', (e) => {
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('active', b === btn));
   const name = btn.dataset.view;
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
-  if (window.gsap) gsap.from('#view-' + name, { y: 14, autoAlpha: 0, duration: .4, ease: 'power2.out', clearProps: 'all' });
+  if (window.gsap) gsap.from('#view-' + name, { y: 8, autoAlpha: 0, duration: .3, ease: 'power2.out', clearProps: 'all' });
   loaders[name]?.();
 });
 
 // ── Обзор ───────────────────────────────────────────────────────────────────
 const stBadge = (s) => ({
-  ok: '<span class="badge"><i class="dot ok"></i>OK</span>',
-  error: '<span class="badge"><i class="dot err"></i>ОШИБКА</span>',
-  incompatible: '<span class="badge"><i class="dot warn"></i>ПРОТОКОЛ</span>',
-  idle: '<span class="badge"><i class="dot idle"></i>IDLE</span>',
+  ok: '<span class="badge ok"><i class="dot ok"></i>OK</span>',
+  error: '<span class="badge err"><i class="dot err"></i>ошибка</span>',
+  incompatible: '<span class="badge warn"><i class="dot warn"></i>протокол</span>',
+  idle: '<span class="badge"><i class="dot"></i>idle</span>',
 }[s] || s);
 
 async function loadOverview() {
   const { instances } = await api('/api/instances').catch(() => ({ instances: [] }));
   $('#ovGrid').innerHTML = instances.map(i => `
-    <div class="panel glass">
+    <div class="panel card">
       <h3>${esc(i.title || i.label)} ${stBadge(i.status)}</h3>
       <div class="kv">
         <div><dt>id</dt><dd>${esc(i.id)}</dd></div>
-        <div><dt>домен</dt><dd>${i.host ? `<a href="${esc(i.publicUrl)}" style="color:var(--accent2)">${esc(i.host)}</a>` : '—'}</dd></div>
+        <div><dt>домен</dt><dd>${i.host ? `<a href="${esc(i.publicUrl)}">${esc(i.host)}</a>` : '—'}</dd></div>
         <div><dt>upstream</dt><dd>${esc(i.url)}</dd></div>
         <div><dt>подарков / категорий</dt><dd>${i.itemCount} / ${i.categoryCount}</dd></div>
         <div><dt>протокол</dt><dd>${esc(i.protocolVersion || '—')}</dd></div>
         <div><dt>задержка</dt><dd>${i.lastLatencyMs != null ? i.lastLatencyMs + ' мс' : '—'}</dd></div>
         <div><dt>обновлён</dt><dd>${relTime(i.lastFetchedAt)}</dd></div>
-        ${i.lastError ? `<div><dt style="color:var(--err)">ошибка</dt><dd style="color:var(--err)">${esc(i.lastError)}</dd></div>` : ''}
+        ${i.lastError ? `<div><dt style="color:var(--red)">ошибка</dt><dd style="color:var(--red)">${esc(i.lastError)}</dd></div>` : ''}
       </div>
       <div class="row-actions">
-        <button class="btn sm" onclick="refreshInstance('${esc(i.id)}')">⟳ опросить</button>
+        <button class="btn sm" onclick="refreshInstance('${esc(i.id)}')">Опросить</button>
       </div>
-    </div>`).join('') || '<div class="panel glass">Нет инстансов.</div>';
+    </div>`).join('') || '<div class="panel card" style="color:var(--tx2)">Нет инстансов.</div>';
   refreshSyncBadge();
 }
 
@@ -413,7 +396,8 @@ async function refreshSyncBadge() {
   try {
     const { lastSync } = await api('/api/admin/caddy');
     const el = $('#syncBadge');
-    if (!lastSync) { el.innerHTML = '<i class="dot idle"></i>caddy: ещё не синкался'; return; }
+    if (!lastSync) { el.innerHTML = '<i class="dot"></i>caddy: ещё не синкался'; return; }
+    el.className = 'badge ' + (lastSync.ok ? 'ok' : 'err');
     el.innerHTML = lastSync.ok
       ? `<i class="dot ok"></i>caddy: ${lastSync.hosts.length} хостов, ${relTime(lastSync.at)}`
       : `<i class="dot err"></i>caddy: ошибка`;
@@ -432,18 +416,18 @@ async function loadInstances() {
 
 function renderInstRows() {
   $('#instList').innerHTML = (cfgCache.instances || []).map((inst, idx) => `
-    <div class="inst-row glass" data-idx="${idx}">
+    <div class="inst-row card" data-idx="${idx}">
       <div class="fields">
-        <div><label>id</label><input class="input" data-f="id" value="${esc(inst.id)}"></div>
-        <div><label>label</label><input class="input" data-f="label" value="${esc(inst.label || '')}"></div>
-        <div><label>url (docker-сеть)</label><input class="input" data-f="url" value="${esc(inst.url)}"></div>
-        <div><label>host (публичный домен)</label><input class="input" data-f="host" value="${esc(inst.host || '')}"></div>
+        <div><label class="fl">id</label><input class="input" data-f="id" value="${esc(inst.id)}"></div>
+        <div><label class="fl">label</label><input class="input" data-f="label" value="${esc(inst.label || '')}"></div>
+        <div><label class="fl">url (docker-сеть)</label><input class="input" data-f="url" value="${esc(inst.url)}"></div>
+        <div><label class="fl">host (публичный домен)</label><input class="input" data-f="host" value="${esc(inst.host || '')}"></div>
       </div>
       <div class="checkline" data-check></div>
       <div class="row-actions">
-        <button class="btn sm" data-act="validate">🔍 проверить URL</button>
-        <button class="btn sm" data-act="dns">🌐 DNS</button>
-        <button class="btn sm danger" data-act="del">✕ убрать</button>
+        <button class="btn sm" data-act="validate">Проверить URL</button>
+        <button class="btn sm" data-act="dns">DNS</button>
+        <button class="btn sm danger" data-act="del">Убрать</button>
       </div>
     </div>`).join('');
 }
@@ -477,22 +461,22 @@ $('#instList').addEventListener('click', async (e) => {
       const v = await api('/api/admin/validate', { method: 'POST', body: { url: get('url') } });
       if (v.ok) {
         check.className = 'checkline ok';
-        check.textContent = `✓ ${v.appName} v${v.protocolVersion} — «${v.title || 'без названия'}», ${v.itemCount} подарков, ${v.latencyMs} мс`;
+        check.textContent = `${v.appName} v${v.protocolVersion} — «${v.title || 'без названия'}», ${v.itemCount} подарков, ${v.latencyMs} мс`;
       } else {
         check.className = 'checkline err';
-        check.textContent = `✗ ${v.status}: ${v.error}`;
+        check.textContent = `${v.status}: ${v.error}`;
       }
     } else if (act === 'dns') {
       const host = get('host');
-      if (!host) { check.className = 'checkline err'; check.textContent = '✗ host пустой'; return; }
+      if (!host) { check.className = 'checkline err'; check.textContent = 'host пустой'; return; }
       const d = await api('/api/admin/dns-check?host=' + encodeURIComponent(host));
-      if (d.match) { check.className = 'checkline ok'; check.textContent = `✓ ${host} → ${d.resolved.join(', ')} (совпадает с сервером)`; }
-      else if (d.resolved.length) { check.className = 'checkline err'; check.textContent = `✗ резолвится в ${d.resolved.join(', ')}, ожидался ${d.expected || '?'}`; }
-      else { check.className = 'checkline err'; check.textContent = `✗ не резолвится: ${d.error || 'нет A-записи'}`; }
+      if (d.match) { check.className = 'checkline ok'; check.textContent = `${host} → ${d.resolved.join(', ')} (совпадает с сервером)`; }
+      else if (d.resolved.length) { check.className = 'checkline err'; check.textContent = `резолвится в ${d.resolved.join(', ')}, ожидался ${d.expected || '?'}`; }
+      else { check.className = 'checkline err'; check.textContent = `не резолвится: ${d.error || 'нет A-записи'}`; }
     }
   } catch (err) {
     check.className = 'checkline err';
-    check.textContent = '✗ ' + err.message;
+    check.textContent = err.message;
   }
 });
 
@@ -524,7 +508,7 @@ async function loadCaddy() {
     $('#caddyfile').textContent = caddyfile;
     $('#caddyMeta').innerHTML = lastSync ? `
       <div><dt>последний пуш</dt><dd>${relTime(lastSync.at)}</dd></div>
-      <div><dt>результат</dt><dd style="color:${lastSync.ok ? 'var(--ok)' : 'var(--err)'}">${lastSync.ok ? 'OK' : esc(lastSync.error || 'ошибка')}</dd></div>
+      <div><dt>результат</dt><dd style="color:${lastSync.ok ? 'var(--gn)' : 'var(--red)'}">${lastSync.ok ? 'OK' : esc(lastSync.error || 'ошибка')}</dd></div>
       <div><dt>хосты</dt><dd>${(lastSync.hosts || []).map(esc).join(', ')}</dd></div>`
       : '<div><dt>последний пуш</dt><dd>ещё не было</dd></div>';
   } catch (e) { toast(e.message, 'err'); }
@@ -541,7 +525,7 @@ $('#caddySyncBtn').onclick = async () => {
 // ── Контейнеры ──────────────────────────────────────────────────────────────
 async function loadDocker() {
   const tbl = $('#ctTable');
-  tbl.innerHTML = '<tr><td style="color:var(--muted)">Загрузка…</td></tr>';
+  tbl.innerHTML = '<tr><td style="color:var(--tx2)">Загрузка…</td></tr>';
   try {
     const { containers } = await api('/api/admin/docker/containers');
     tbl.innerHTML = `
@@ -550,23 +534,23 @@ async function loadDocker() {
         const stateDot = c.state === 'running' ? 'ok' : 'err';
         const dis = c.protected ? 'disabled title="защищён"' : '';
         return `<tr>
-          <td><b>${esc(c.name)}</b>${c.protected ? ' 🔒' : ''}</td>
-          <td style="color:var(--muted)">${esc(c.image)}</td>
-          <td><span class="badge"><i class="dot ${stateDot}"></i>${esc(c.status)}</span></td>
-          <td>${c.instanceId ? esc(c.instanceId) : '<span style="color:var(--muted)">—</span>'}</td>
+          <td><b>${esc(c.name)}</b>${c.protected ? '<span class="lock">защищён</span>' : ''}</td>
+          <td style="color:var(--tx2)">${esc(c.image)}</td>
+          <td><span class="badge ${c.state === 'running' ? 'ok' : 'err'}"><i class="dot ${stateDot}"></i>${esc(c.status)}</span></td>
+          <td>${c.instanceId ? esc(c.instanceId) : '<span style="color:var(--tx3)">—</span>'}</td>
           <td><div class="actions">
             ${c.state === 'running'
-              ? `<button class="btn sm" data-ct="${esc(c.name)}" data-do="restart" ${dis}>⟳</button>
-                 <button class="btn sm" data-ct="${esc(c.name)}" data-do="stop" ${dis}>⏹</button>`
-              : `<button class="btn sm" data-ct="${esc(c.name)}" data-do="start" ${dis}>▶</button>`}
-            <button class="btn sm" data-ct="${esc(c.name)}" data-do="logs" ${dis}>📜</button>
-            <button class="btn sm" data-ct="${esc(c.name)}" data-do="update" ${dis}>⬆ образ</button>
-            <button class="btn sm danger" data-ct="${esc(c.name)}" data-do="remove" ${dis}>✕</button>
+              ? `<button class="btn sm" data-ct="${esc(c.name)}" data-do="restart" ${dis}>Рестарт</button>
+                 <button class="btn sm" data-ct="${esc(c.name)}" data-do="stop" ${dis}>Стоп</button>`
+              : `<button class="btn sm" data-ct="${esc(c.name)}" data-do="start" ${dis}>Старт</button>`}
+            <button class="btn sm" data-ct="${esc(c.name)}" data-do="logs" ${dis}>Логи</button>
+            <button class="btn sm" data-ct="${esc(c.name)}" data-do="update" ${dis}>Обновить образ</button>
+            <button class="btn sm danger" data-ct="${esc(c.name)}" data-do="remove" ${dis}>Удалить</button>
           </div></td>
         </tr>`;
       }).join('');
   } catch (e) {
-    tbl.innerHTML = `<tr><td style="color:var(--err)">${esc(e.message)}</td></tr>`;
+    tbl.innerHTML = `<tr><td style="color:var(--red)">${esc(e.message)}</td></tr>`;
   }
 }
 $('#dockerReloadBtn').onclick = loadDocker;
@@ -578,7 +562,7 @@ $('#ctTable').addEventListener('click', async (e) => {
   try {
     if (act === 'logs') {
       const { logs } = await api(`/api/admin/docker/${encodeURIComponent(name)}/logs?tail=300`);
-      openModal(`📜 ${name} — последние 300 строк`, logs || '(пусто)');
+      openModal(`${name} — последние 300 строк`, logs || '(пусто)');
       return;
     }
     if (act === 'remove' && !confirm(`Удалить контейнер ${name}? Volumes останутся.`)) return;
@@ -587,13 +571,13 @@ $('#ctTable').addEventListener('click', async (e) => {
     if (act === 'update') {
       toast(`Обновляю ${name}… (может занять минуту)`);
       const r = await api(`/api/admin/docker/${encodeURIComponent(name)}/update`, { method: 'POST' });
-      toast(r.updated ? `✓ ${name} пересоздан на новом образе` : r.reason, r.updated ? 'ok' : 'err', 6000);
+      toast(r.updated ? `${name} пересоздан на новом образе` : r.reason, r.updated ? 'ok' : 'err', 6000);
     } else if (act === 'remove') {
       await api(`/api/admin/docker/${encodeURIComponent(name)}`, { method: 'DELETE' });
       toast(`Контейнер ${name} удалён`);
     } else {
       await api(`/api/admin/docker/${encodeURIComponent(name)}/${act}`, { method: 'POST' });
-      toast(`✓ ${name}: ${act}`);
+      toast(`${name}: ${act} выполнен`);
     }
     loadDocker();
   } catch (err) {
@@ -618,21 +602,21 @@ async function loadProvision() {
 $('#pvDnsBtn').onclick = async () => {
   const host = $('#pvHost').value.trim();
   const line = $('#pvDns');
-  if (!host) { line.className = 'checkline err'; line.textContent = '✗ введи host'; return; }
+  if (!host) { line.className = 'checkline err'; line.textContent = 'введите host'; return; }
   line.className = 'checkline'; line.textContent = '…';
   try {
     const d = await api('/api/admin/dns-check?host=' + encodeURIComponent(host));
-    if (d.match) { line.className = 'checkline ok'; line.textContent = `✓ ${host} → ${d.resolved.join(', ')}`; }
-    else if (d.resolved.length) { line.className = 'checkline err'; line.textContent = `✗ → ${d.resolved.join(', ')}, ожидался ${d.expected || '?'}`; }
-    else { line.className = 'checkline err'; line.textContent = `✗ не резолвится — создай A-запись (grey cloud) на ${d.expected || 'IP сервера'}`; }
-  } catch (e) { line.className = 'checkline err'; line.textContent = '✗ ' + e.message; }
+    if (d.match) { line.className = 'checkline ok'; line.textContent = `${host} → ${d.resolved.join(', ')}`; }
+    else if (d.resolved.length) { line.className = 'checkline err'; line.textContent = `→ ${d.resolved.join(', ')}, ожидался ${d.expected || '?'}`; }
+    else { line.className = 'checkline err'; line.textContent = `не резолвится — создайте A-запись (grey cloud) на ${d.expected || 'IP сервера'}`; }
+  } catch (e) { line.className = 'checkline err'; line.textContent = e.message; }
 };
 
 $('#pvGoBtn').onclick = async () => {
   const id = $('#pvId').value.trim();
   const image = $('#pvImage').value;
-  if (!id) return toast('Заполни id', 'err');
-  if (!image) return toast('Выбери образ', 'err');
+  if (!id) return toast('Заполните id', 'err');
+  if (!image) return toast('Выберите образ', 'err');
   const extraEnv = {};
   for (const line of $('#pvEnv').value.split('\n')) {
     const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
@@ -652,8 +636,8 @@ $('#pvGoBtn').onclick = async () => {
     $('#pvResUrl').textContent = r.publicUrl || r.url;
     $('#pvResToken').textContent = r.adminToken;
     $('#pvResult').style.display = 'block';
-    if (window.gsap) gsap.from('#pvResult', { y: 16, autoAlpha: 0, duration: .5, ease: 'power3.out', clearProps: 'all' });
-    toast(`✓ Вишлист ${id} создан и зарегистрирован`);
+    if (window.gsap) gsap.from('#pvResult', { y: 10, autoAlpha: 0, duration: .4, ease: 'power2.out', clearProps: 'all' });
+    toast(`Вишлист ${id} создан и зарегистрирован`);
   } catch (e) {
     toast(e.message, 'err', 7000);
   } finally {
